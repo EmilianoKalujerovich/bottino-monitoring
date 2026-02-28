@@ -4118,3 +4118,31 @@ The object is already closed [90007-224]
 2026-02-23 17:30:14.273720+01:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLNonTransientException: El objeto ya está cerrado
 The object is already closed [90007-224]
+2026-02-24 22:34:24.514198+01:00 jdbc[53]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "SELECT * FROM ANALOG_VARIABLES COMMAND_VARIABLES [*]STATUS_VARIABLES"
+Syntax error in SQL statement "SELECT * FROM ANALOG_VARIABLES COMMAND_VARIABLES [*]STATUS_VARIABLES"; SQL statement:
+SELECT * FROM ANALOG_VARIABLES COMMAND_VARIABLES STATUS_VARIABLES [42000-224]
+2026-02-25 12:44:29.293980+01:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: El objeto ya está cerrado
+The object is already closed [90007-224]
+2026-02-25 12:46:18.936234+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: El objeto ya está cerrado
+The object is already closed [90007-224]
+2026-02-25 12:49:14.219130+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: El objeto ya está cerrado
+The object is already closed [90007-224]
+2026-02-25 12:51:45.719565+01:00 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: El objeto ya está cerrado
+The object is already closed [90007-224]
+2026-02-26 08:34:30.615938+01:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "UPDATE [*]FROM USERS SET has_token = false WHERE ID = 3"; se esperaba "identifier"
+Syntax error in SQL statement "UPDATE [*]FROM USERS SET has_token = false WHERE ID = 3"; expected "identifier"; SQL statement:
+UPDATE FROM USERS SET has_token = false WHERE ID = 3 [42001-224]
+2026-02-26 08:34:40.492892+01:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "UPDATE [*]* FROM USERS SET has_token = false WHERE ID = 3"; se esperaba "identifier"
+Syntax error in SQL statement "UPDATE [*]* FROM USERS SET has_token = false WHERE ID = 3"; expected "identifier"; SQL statement:
+UPDATE * FROM USERS SET has_token = false WHERE ID = 3 [42001-224]
+2026-02-26 08:34:53.997285+01:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "UPDATE [*]FROM USERS SET ""has_token"" = false WHERE ID = 3"; se esperaba "identifier"
+Syntax error in SQL statement "UPDATE [*]FROM USERS SET ""has_token"" = false WHERE ID = 3"; expected "identifier"; SQL statement:
+UPDATE FROM USERS SET "has_token" = false WHERE ID = 3 [42001-224]

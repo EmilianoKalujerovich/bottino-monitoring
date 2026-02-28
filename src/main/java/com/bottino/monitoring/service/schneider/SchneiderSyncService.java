@@ -46,7 +46,7 @@ public class SchneiderSyncService {
    /**
     * Sync variables every 1 minute
     */
-   @Scheduled(fixedRate = 60000) // 30 seconds in milliseconds
+   @Scheduled(fixedRate = 10000) // 30 seconds in milliseconds
    public void syncVariables() {
       // Skip if already syncing
       if (!isSyncing.compareAndSet(false, true)) {

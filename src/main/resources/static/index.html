@@ -7,322 +7,642 @@
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-    <!-- Login Screen -->
-    <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <div class="login-card">
-                <h1>🔐 Bottino Monitoring</h1>
-                <p class="subtitle">Please enter your credentials</p>
 
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="username">Username:</label>
-                        <input type="text" id="username" class="form-control"
-                               placeholder="Enter username" required autocomplete="username">
-                    </div>
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container" class="toast-container"></div>
 
-                    <div class="form-group">
-                        <label for="password">Password:</label>
-                        <input type="password" id="password" class="form-control"
-                               placeholder="Enter password" required autocomplete="current-password">
-                    </div>
+<!-- ===== CONFIRM DIALOG ===== -->
+<div class="modal-overlay" id="modal-confirm">
+    <div class="modal-card modal-sm">
+        <div class="modal-header">
+            <h2 id="confirm-title">Confirm</h2>
+        </div>
+        <div class="modal-body">
+            <p id="confirm-message" style="color:#555;font-size:14px;line-height:1.6;"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger"    id="confirm-ok">Confirm</button>
+            <button class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
 
-                    <button type="submit" class="btn btn-primary">Login</button>
+<!-- ===== INPUT DIALOG ===== -->
+<div class="modal-overlay" id="modal-prompt">
+    <div class="modal-card modal-sm">
+        <div class="modal-header">
+            <h2 id="prompt-title">Enter value</h2>
+        </div>
+        <div class="modal-body">
+            <p id="prompt-message" style="color:#555;font-size:14px;margin-bottom:14px;"></p>
+            <input type="text" id="prompt-input" class="form-control" placeholder="">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary"   id="prompt-ok">OK</button>
+            <button class="btn btn-secondary" id="prompt-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
 
-                    <div id="login-error" class="error-message"></div>
-                </form>
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen" class="screen active">
+    <div class="login-container">
+        <div class="login-card">
+            <h1>🔐 Bottino Monitoring</h1>
+            <p class="subtitle">Please enter your credentials</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Login</button>
+                <div id="login-error" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+</div>
 
-                <div class="info-box">
-                    <p><strong>Demo accounts:</strong></p>
-                    <p>bottino / bottino123 (first time - needs Schneider config)</p>
-                    <p>admin / admin123 (already configured)</p>
+<!-- ===== TOKEN SCREEN ===== -->
+<div id="token-screen" class="screen">
+    <div class="login-container">
+        <div class="login-card">
+            <h1>🔑 Token Required</h1>
+            <p class="subtitle">Please enter your security token</p>
+            <form id="token-form">
+                <div class="form-group">
+                    <label for="token-input">Security Token:</label>
+                    <input type="password" id="token-input" class="form-control" placeholder="Enter your token" required autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Validate</button>
+                <button type="button" id="token-back-btn" class="btn btn-secondary btn-full" style="margin-top:10px;">Back</button>
+                <div id="token-error" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MAIN SCREEN ===== -->
+<div id="main-screen" class="screen">
+
+    <div class="navbar">
+        <h1>📊 Bottino Monitoring System</h1>
+        <div class="navbar-right">
+            <div class="user-menu" id="user-menu">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <span class="user-name-label" id="user-name-label">User</span>
+                <span class="user-caret">▾</span>
+                <div class="user-dropdown" id="user-dropdown">
+                    <div class="dropdown-item" id="menu-user-info"><span>👤</span> User Information</div>
+                    <div class="dropdown-item" id="menu-schneider-config"><span>⚙️</span> Schneider Configuration</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item dropdown-logout" id="menu-logout"><span>🚪</span> Logout</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Token Validation Screen -->
-    <div id="token-screen" class="screen">
-        <div class="login-container">
-            <div class="login-card">
-                <h1>🔑 Token Required</h1>
-                <p class="subtitle">Please enter your security token</p>
+    <div class="app-body">
 
-                <form id="token-form">
-                    <div class="form-group">
-                        <label for="token-input">Security Token:</label>
-                        <input type="password" id="token-input" class="form-control"
-                               placeholder="Enter your token" required autocomplete="off">
+        <!-- LEFT SIDEBAR -->
+        <div class="sidebar">
+            <nav class="sidebar-nav">
+                <a class="sidebar-nav-item active" data-sidebar="variables" href="#">
+                    <span class="sidebar-nav-icon">📋</span>
+                    <span class="sidebar-nav-label">Variables</span>
+                </a>
+                <a class="sidebar-nav-item" data-sidebar="panel" href="#">
+                    <span class="sidebar-nav-icon">🖥️</span>
+                    <span class="sidebar-nav-label">Panel</span>
+                </a>
+                <a class="sidebar-nav-item" data-sidebar="oscilo" href="#">
+                    <span class="sidebar-nav-icon">📈</span>
+                    <span class="sidebar-nav-label">Oscilografías</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-pane active" id="sidebar-variables">
+                <p class="sb-hint" style="padding:16px 12px;color:#aaa;font-size:12px;">
+                    Manage variables in the main view.
+                </p>
+            </div>
+
+            <div class="sidebar-pane" id="sidebar-oscilo">
+                <div class="sb-section-title">Archivos COMTRADE</div>
+                <div class="osc-upload-area" id="osc-upload-area">
+                    <div class="osc-upload-slot" id="osc-cfg-slot">
+                        <input type="file" id="osc-cfg-input" accept=".cfg" style="display:none">
+                        <button class="osc-upload-btn" onclick="document.getElementById('osc-cfg-input').click()">📄 .CFG</button>
+                        <span id="osc-cfg-name" class="osc-file-name">Sin archivo</span>
                     </div>
+                    <div class="osc-upload-slot" id="osc-dat-slot">
+                        <input type="file" id="osc-dat-input" accept=".dat" style="display:none">
+                        <button class="osc-upload-btn" onclick="document.getElementById('osc-dat-input').click()">📊 .DAT</button>
+                        <span id="osc-dat-name" class="osc-file-name">Sin archivo</span>
+                    </div>
+                    <button class="btn btn-primary" id="osc-analyze-btn" style="width:100%;margin-top:8px;font-size:12px;" disabled>⚡ Analizar</button>
+                </div>
 
-                    <button type="submit" class="btn btn-primary">Validate</button>
-                    <button type="button" id="token-back-btn" class="btn btn-secondary">Back</button>
-
-                    <div id="token-error" class="error-message"></div>
-                </form>
-
-                <div class="info-box">
-                    <p><strong>Demo tokens:</strong></p>
-                    <p>BOTTINO_SECRET_TOKEN_2024</p>
-                    <p>ADMIN_TOKEN_2024</p>
+                <div id="osc-channel-list" class="osc-channel-list" style="display:none;">
+                    <div class="sb-section-title" style="margin-top:12px;">Canales Analógicos</div>
+                    <div id="osc-analog-channels"></div>
+                    <div class="sb-section-title" style="margin-top:10px;">Canales Digitales</div>
+                    <div id="osc-digital-channels"></div>
                 </div>
             </div>
+
+            <div class="sidebar-pane" id="sidebar-panel">
+                <div class="sb-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                    Panels
+                    <button class="btn-icon" id="btn-new-panel" title="New panel">＋</button>
+                </div>
+                <div id="panel-list" class="panel-list"></div>
+
+                <div class="sb-section-title" style="margin-top:10px;">ANSI / IEC Symbols</div>
+                <div class="sb-search-wrap">
+                    <input type="text" id="symbol-search" class="sb-search-input" placeholder="🔍  Search symbols…">
+                </div>
+                <p class="sb-hint">Drag symbols onto the canvas</p>
+                <div class="symbol-palette" id="symbol-palette"></div>
+
+                <div class="sb-section-title" style="margin-top:14px;">Tools</div>
+                <div class="panel-tools">
+                    <button class="tool-btn active" id="tool-select">↖ Select</button>
+                    <button class="tool-btn" id="tool-connect">↝ Connect</button>
+                    <button class="tool-btn tool-btn-danger" id="tool-delete">🗑 Delete</button>
+                    <button class="tool-btn tool-btn-warn" id="tool-clear">✕ Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+
+            <!-- VARIABLES VIEW -->
+            <div id="view-variables" class="view active">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="status">Status</button>
+                    <button class="tab-btn" data-tab="analog">Analog</button>
+                    <button class="tab-btn" data-tab="command">Command</button>
+                </div>
+
+                <!-- STATUS TAB -->
+                <div id="status-tab" class="tab-content active">
+                    <div class="controls">
+                        <button class="btn btn-success add-btn" data-type="status">➕ New Variable</button>
+                        <button class="btn btn-info batch-btn" data-type="status">📁 Batch Import</button>
+                    </div>
+                    <div class="batch-section" id="status-batch" style="display:none;">
+                        <h3>Batch Import - Status Variables</h3>
+                        <div class="batch-controls">
+                            <a href="/template.csv" download class="btn btn-info">📥 Download Template</a>
+                            <input type="file" id="status-csv-input" accept=".csv" style="display:none;">
+                            <button class="btn btn-success" id="status-upload-btn">📤 Upload CSV</button>
+                            <button class="btn btn-secondary batch-cancel-btn" data-type="status">Cancel</button>
+                        </div>
+                        <div id="status-batch-result" class="batch-result"></div>
+                    </div>
+                    <div class="form-section" id="status-form-section" style="display:none;">
+                        <h2 id="status-form-title">New Status Variable</h2>
+                        <form class="variable-form" data-type="status">
+                            <input type="hidden" class="variable-id">
+                            <div class="form-group"><label>Name:</label><input type="text" class="form-control variable-name" placeholder="e.g., PUMP_STATUS" required></div>
+                            <div class="form-group value-field" style="display:none;"><label>Value:</label><input type="text" class="form-control variable-value" placeholder="e.g., 1"></div>
+                            <div class="form-group"><label>Description:</label><input type="text" class="form-control variable-description" placeholder="Optional description"></div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary cancel-form-btn">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="table-container">
+                        <table><thead><tr><th>ID</th><th>Name</th><th>Value</th><th>Description</th><th>Actions</th></tr></thead>
+                        <tbody id="status-tbody"><tr><td colspan="5" class="loading">Loading data...</td></tr></tbody></table>
+                    </div>
+                </div>
+
+                <!-- ANALOG TAB -->
+                <div id="analog-tab" class="tab-content">
+                    <div class="controls">
+                        <button class="btn btn-success add-btn" data-type="analog">➕ New Variable</button>
+                        <button class="btn btn-info batch-btn" data-type="analog">📁 Batch Import</button>
+                    </div>
+                    <div class="batch-section" id="analog-batch" style="display:none;">
+                        <h3>Batch Import - Analog Variables</h3>
+                        <div class="batch-controls">
+                            <a href="/template.csv" download class="btn btn-info">📥 Download Template</a>
+                            <input type="file" id="analog-csv-input" accept=".csv" style="display:none;">
+                            <button class="btn btn-success" id="analog-upload-btn">📤 Upload CSV</button>
+                            <button class="btn btn-secondary batch-cancel-btn" data-type="analog">Cancel</button>
+                        </div>
+                        <div id="analog-batch-result" class="batch-result"></div>
+                    </div>
+                    <div class="form-section" id="analog-form-section" style="display:none;">
+                        <h2 id="analog-form-title">New Analog Variable</h2>
+                        <form class="variable-form" data-type="analog">
+                            <input type="hidden" class="variable-id">
+                            <div class="form-group"><label>Name:</label><input type="text" class="form-control variable-name" placeholder="e.g., TEMPERATURE_1" required></div>
+                            <div class="form-group value-field" style="display:none;"><label>Value:</label><input type="text" class="form-control variable-value" placeholder="e.g., 1"></div>
+                            <div class="form-group"><label>Description:</label><input type="text" class="form-control variable-description" placeholder="Optional description"></div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary cancel-form-btn">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="table-container">
+                        <table><thead><tr><th>ID</th><th>Name</th><th>Value</th><th>Description</th><th>Actions</th></tr></thead>
+                        <tbody id="analog-tbody"><tr><td colspan="5" class="loading">Loading data...</td></tr></tbody></table>
+                    </div>
+                </div>
+
+                <!-- COMMAND TAB -->
+                <div id="command-tab" class="tab-content">
+                    <div class="controls">
+                        <button class="btn btn-success add-btn" data-type="command">➕ New Variable</button>
+                        <button class="btn btn-info batch-btn" data-type="command">📁 Batch Import</button>
+                    </div>
+                    <div class="batch-section" id="command-batch" style="display:none;">
+                        <h3>Batch Import - Command Variables</h3>
+                        <div class="batch-controls">
+                            <a href="/template.csv" download class="btn btn-info">📥 Download Template</a>
+                            <input type="file" id="command-csv-input" accept=".csv" style="display:none;">
+                            <button class="btn btn-success" id="command-upload-btn">📤 Upload CSV</button>
+                            <button class="btn btn-secondary batch-cancel-btn" data-type="command">Cancel</button>
+                        </div>
+                        <div id="command-batch-result" class="batch-result"></div>
+                    </div>
+                    <div class="form-section" id="command-form-section" style="display:none;">
+                        <h2 id="command-form-title">New Command Variable</h2>
+                        <form class="variable-form" data-type="command">
+                            <input type="hidden" class="variable-id">
+                            <div class="form-group"><label>Name:</label><input type="text" class="form-control variable-name" placeholder="e.g., START_PUMP" required></div>
+                            <div class="form-group value-field" style="display:none;"><label>Value:</label><input type="text" class="form-control variable-value" placeholder="e.g., 1"></div>
+                            <div class="form-group"><label>Description:</label><input type="text" class="form-control variable-description" placeholder="Optional description"></div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-secondary cancel-form-btn">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="table-container">
+                        <table><thead><tr><th>ID</th><th>Name</th><th>Value</th><th>Description</th><th>Actions</th></tr></thead>
+                        <tbody id="command-tbody"><tr><td colspan="5" class="loading">Loading data...</td></tr></tbody></table>
+                    </div>
+                </div>
+            </div><!-- /view-variables -->
+
+            <!-- PANEL VIEW -->
+            <div id="view-panel" class="view">
+                <div class="panel-canvas-wrapper">
+                    <div class="panel-canvas-header">
+                        <span>🖥️ <strong id="current-panel-name">Panel</strong></span>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <span class="panel-header-hint">Drag symbols · Double-click to configure · Connect tool to link</span>
+                            <button class="btn btn-success" id="btn-save-panel" style="padding:6px 14px;font-size:12px;">💾 Save Panel</button>
+                        </div>
+                    </div>
+                    <div class="panel-canvas-container" id="panel-canvas-container">
+                        <svg id="panel-canvas" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#667eea"/>
+                                </marker>
+                                <marker id="arrowhead-sel" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c"/>
+                                </marker>
+                            </defs>
+                            <g id="connections-layer"></g>
+                            <g id="symbols-layer"></g>
+                        </svg>
+                    </div>
+                    <div id="rtu-alert-banner" class="rtu-alert-banner" style="display:none;">
+                        <span>⚠️</span>
+                        <span><strong>RTU DISCONNECTED</strong> — One or more variables reporting <code>-99</code>. Check Schneider RTU connection.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OSCILLOGRAPHY VIEW -->
+            <div id="view-oscilo" class="view">
+                <div class="osc-workspace">
+                    <div class="osc-topbar" id="osc-topbar" style="display:none;">
+                        <div class="osc-meta">
+                            <span id="osc-station-label" class="osc-meta-item"></span>
+                            <span id="osc-device-label" class="osc-meta-item"></span>
+                            <span id="osc-ts-label" class="osc-meta-item"></span>
+                            <span id="osc-sr-label" class="osc-meta-item"></span>
+                            <span id="osc-dur-label" class="osc-meta-item"></span>
+                        </div>
+                        <div class="osc-controls">
+                            <button class="osc-ctrl-btn" id="osc-zoom-in"  title="Zoom in">＋ Zoom</button>
+                            <button class="osc-ctrl-btn" id="osc-zoom-out" title="Zoom out">－ Zoom</button>
+                            <button class="osc-ctrl-btn" id="osc-zoom-fit" title="Fit all">◻ Fit</button>
+                            <button class="osc-ctrl-btn" id="osc-fft-btn"  title="FFT Spectrum">∿ FFT</button>
+                            <div class="osc-cursor-readout" id="osc-cursor-readout">Cursor: —</div>
+                        </div>
+                    </div>
+
+                    <!-- View mode tabs -->
+                    <div class="osc-view-tabs" id="osc-view-tabs" style="display:none;">
+                        <button class="osc-view-tab active" data-osc-view="waveform" onclick="OscilloController.switchView('waveform')">⏦ Forma de Onda</button>
+                        <button class="osc-view-tab" data-osc-view="envelope" onclick="OscilloController.switchView('envelope')">◈ Amplitud vs Tiempo</button>
+                        <button class="osc-view-tab" data-osc-view="spectrogram" onclick="OscilloController.switchView('spectrogram')">⊞ Espectrograma XY</button>
+                    </div>
+
+                    <div id="osc-empty-state" class="osc-empty-state">
+                        <div class="osc-empty-icon">∿</div>
+                        <div class="osc-empty-title">Módulo de Oscilografías</div>
+                        <div class="osc-empty-sub">Cargue un par de archivos .CFG + .DAT en el panel lateral para comenzar el análisis</div>
+                        <div class="osc-empty-hint">COMTRADE IEEE C37.111 — ASCII &amp; Binario</div>
+                    </div>
+
+                    <!-- WAVEFORM view -->
+                    <div id="osc-chart-area" class="osc-chart-area" style="display:none;">
+                        <canvas id="osc-canvas" class="osc-canvas"></canvas>
+                        <div id="osc-cursor-line" class="osc-cursor-line" style="display:none;"></div>
+                        <div id="osc-events-overlay" class="osc-events-overlay"></div>
+                    </div>
+
+                    <div id="osc-scrollbar-wrap" class="osc-scrollbar-wrap" style="display:none;">
+                        <div class="osc-scrollbar-track">
+                            <div id="osc-scrollbar-thumb" class="osc-scrollbar-thumb"></div>
+                        </div>
+                        <div class="osc-time-axis" id="osc-time-axis"></div>
+                    </div>
+
+                    <div id="osc-info-panel" class="osc-info-panel" style="display:none;">
+                        <div class="osc-events-list">
+                            <div class="osc-panel-title">Eventos</div>
+                            <div id="osc-events-list"></div>
+                        </div>
+                        <div class="osc-rms-panel">
+                            <div class="osc-panel-title">Valores RMS (ventana activa)</div>
+                            <div id="osc-rms-panel"></div>
+                        </div>
+                    </div>
+
+                    <!-- ENVELOPE / Amplitude vs Time view -->
+                    <div id="osc-envelope-area">
+                        <div class="osc-envelope-header">
+                            <div class="osc-env-controls">
+                                <span class="osc-spec-label">Ventana RMS:</span>
+                                <select id="osc-env-window" class="osc-spec-ch-select">
+                                    <option value="cycle">1 ciclo (20ms)</option>
+                                    <option value="halfcycle">½ ciclo (10ms)</option>
+                                    <option value="5cycle">5 ciclos (100ms)</option>
+                                </select>
+                                <span class="osc-spec-label">Canales:</span>
+                                <div id="osc-env-ch-toggles" class="osc-env-ch-toggles"></div>
+                            </div>
+                            <div style="flex:1;"></div>
+                            <span class="osc-env-legend" id="osc-env-legend"></span>
+                        </div>
+                        <div class="osc-envelope-body">
+                            <div id="osc-env-empty" class="osc-spec-empty">
+                                <div class="osc-spec-empty-icon">◈</div>
+                                <span>Seleccione parámetros y presione <strong style="color:#4cd9ff;">Generar</strong></span>
+                            </div>
+                            <canvas id="osc-env-canvas" style="display:none;width:100%;height:100%;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- SPECTROGRAM / XY view -->
+                    <div id="osc-spectrogram-area">
+                        <div class="osc-spectrogram-header">
+                            <span class="osc-spec-label">Canal:</span>
+                            <select id="osc-spec-ch-select" class="osc-spec-ch-select"></select>
+                            <span class="osc-spec-label">Paleta:</span>
+                            <select id="osc-spec-colormap" class="osc-spec-colormap-select">
+                                <option value="plasma">Plasma</option>
+                                <option value="viridis">Viridis</option>
+                                <option value="inferno">Inferno</option>
+                                <option value="thermal">Thermal</option>
+                                <option value="cyberpunk">Cyberpunk</option>
+                            </select>
+                            <button class="osc-spec-render-btn" onclick="OscilloController.renderSpectrogram()">⊞ Generar Espectrograma</button>
+                            <div style="flex:1;"></div>
+                            <span style="font-family:monospace;font-size:10px;color:#2a4055;" id="osc-spec-info"></span>
+                        </div>
+                        <div class="osc-spectrogram-body">
+                            <div class="osc-spec-canvas-wrap">
+                                <div id="osc-spec-empty" class="osc-spec-empty">
+                                    <div class="osc-spec-empty-icon">⊞</div>
+                                    <span>Seleccione un canal y presione <strong style="color:#4cd9ff;">Generar Espectrograma</strong></span>
+                                </div>
+                                <canvas id="osc-spec-canvas" style="display:none;"></canvas>
+                                <div class="osc-spec-axis-x" id="osc-spec-axis-x" style="display:none;"></div>
+                            </div>
+                            <div class="osc-spec-colorbar" id="osc-spec-colorbar" style="display:none;">
+                                <span class="osc-spec-colorbar-label" id="osc-spec-cb-max">max</span>
+                                <canvas id="osc-spec-cb-gradient" class="osc-spec-colorbar-gradient"></canvas>
+                                <span class="osc-spec-colorbar-label">0</span>
+                                <span class="osc-spec-colorbar-label">dB</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FFT Modal -->
+                    <div id="osc-fft-overlay" class="osc-fft-overlay" style="display:none;">
+                        <div class="osc-fft-card">
+                            <div class="osc-fft-header">
+                                <span>∿ Espectro FFT — <span id="osc-fft-channel-name"></span></span>
+                                <button onclick="document.getElementById('osc-fft-overlay').style.display='none'">✕</button>
+                            </div>
+                            <canvas id="osc-fft-canvas" width="780" height="300"></canvas>
+                            <div id="osc-fft-harmonics" class="osc-fft-harmonics"></div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /view-oscilo -->
+
+        </div><!-- /main-content -->
+    </div><!-- /app-body -->
+</div><!-- /main-screen -->
+
+
+<!-- ===== MODAL: USER INFO ===== -->
+<div class="modal-overlay" id="modal-user-info">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2>👤 User Information</h2>
+            <button class="modal-close" data-modal="modal-user-info">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="user-info-grid">
+                <div class="user-info-avatar-big" id="modal-avatar-big">U</div>
+                <div class="user-info-details">
+                    <div class="user-info-row"><span class="ui-label">Username</span><span class="ui-value" id="ui-username">-</span></div>
+                    <div class="user-info-row"><span class="ui-label">Schneider Config</span><span class="ui-value" id="ui-schneider-status">-</span></div>
+                    <div class="user-info-row"><span class="ui-label">RTU IP</span><span class="ui-value" id="ui-rtu-ip">-</span></div>
+                    <div class="user-info-row"><span class="ui-label">Schneider User</span><span class="ui-value" id="ui-schneider-user">-</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" data-modal="modal-user-info">Close</button>
         </div>
     </div>
+</div>
 
-    <!-- Main Screen -->
-    <div id="main-screen" class="screen">
-        <div class="navbar">
-            <h1>📊 Bottino Monitoring System</h1>
-            <button id="logout-btn" class="btn btn-secondary">Logout</button>
+<!-- ===== MODAL: SCHNEIDER CONFIG ===== -->
+<div class="modal-overlay" id="modal-schneider-config">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2>⚙️ Schneider RTU Configuration</h2>
+            <button class="modal-close" data-modal="modal-schneider-config">✕</button>
         </div>
-
-        <div class="container">
-            <!-- Tabs -->
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="status">Status</button>
-                <button class="tab-btn" data-tab="analog">Analog</button>
-                <button class="tab-btn" data-tab="command">Command</button>
-                <button class="tab-btn" data-tab="config">Configuration</button>
+        <div class="modal-body">
+            <div id="config-current-info" class="info-box" style="display:none;margin-bottom:20px;">
+                <p><strong>Schneider User:</strong> <span id="current-schneider-username">-</span></p>
+                <p><strong>RTU IP:</strong> <span id="current-rtu-ip">-</span></p>
+                <p style="margin-top:8px;font-size:12px;color:#666;">Status: <span id="config-status">Not configured</span></p>
             </div>
-
-            <!-- Tab Contents -->
-            <div id="status-tab" class="tab-content active">
-                <div class="controls">
-                    <button class="btn btn-success add-btn" data-type="status">➕ New Variable</button>
-                    <button class="btn btn-info batch-btn" data-type="status">📁 Batch Import</button>
+            <form id="config-form">
+                <div class="form-group">
+                    <label>Schneider Username:</label>
+                    <input type="text" id="config-schneider-username" class="form-control" placeholder="Enter Schneider username" required>
                 </div>
-
-                <!-- Batch Import Section -->
-                <div class="batch-section" id="status-batch" style="display: none;">
-                    <h3>Batch Import - Status Variables</h3>
-                    <div class="batch-controls">
-                        <a href="/template.csv" download class="btn btn-info">📥 Download Template</a>
-                        <input type="file" id="status-csv-input" accept=".csv" style="display: none;">
-                        <button class="btn btn-success" id="status-upload-btn">📤 Upload CSV</button>
-                        <button class="btn btn-secondary batch-cancel-btn" data-type="status">Cancel</button>
-                    </div>
-                    <div id="status-batch-result" class="batch-result"></div>
+                <div class="form-group">
+                    <label>Schneider Password:</label>
+                    <input type="password" id="config-schneider-password" class="form-control" placeholder="Enter Schneider password" required>
                 </div>
-
-                <!-- Form Section -->
-                <div class="form-section" id="status-form-section" style="display: none;">
-                    <h2 id="status-form-title">New Status Variable</h2>
-                    <form class="variable-form" data-type="status">
-                        <input type="hidden" class="variable-id">
-                        <div class="form-group">
-                            <label>Name:</label>
-                            <input type="text" class="form-control variable-name" placeholder="e.g., PUMP_STATUS" required>
-                        </div>
-
-                        <div class="form-group value-field">
-                            <label>Value:</label>
-                            <input type="text" class="form-control variable-value" placeholder="e.g., 1" >
-                        </div>
-
-                        <div class="form-group">
-                            <label>Description:</label>
-                            <input type="text" class="form-control variable-description" placeholder="Optional description">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                            <button type="button" class="btn btn-secondary cancel-form-btn">Cancel</button>
-                        </div>
-                    </form>
+                <div class="form-group">
+                    <label>RTU IP Address:</label>
+                    <input type="text" id="config-rtu-ip" class="form-control" placeholder="e.g., 192.168.1.100" required>
                 </div>
-
-                <!-- Table -->
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Value</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="status-tbody">
-                            <tr><td colspan="5" class="loading">Loading data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Analog Tab -->
-            <div id="analog-tab" class="tab-content">
-                <div class="controls">
-                    <button class="btn btn-success add-btn" data-type="analog">➕ New Variable</button>
-                    <button class="btn btn-info batch-btn" data-type="analog">📁 Batch Import</button>
-                </div>
-
-                <div class="batch-section" id="analog-batch" style="display: none;">
-                    <h3>Batch Import - Analog Variables</h3>
-                    <div class="batch-controls">
-                        <a href="/template.csv" download class="btn btn-info">📥 Download Template</a>
-                        <input type="file" id="analog-csv-input" accept=".csv" style="display: none;">
-                        <button class="btn btn-success" id="analog-upload-btn">📤 Upload CSV</button>
-                        <button class="btn btn-secondary batch-cancel-btn" data-type="analog">Cancel</button>
-                    </div>
-                    <div id="analog-batch-result" class="batch-result"></div>
-                </div>
-
-                <div class="form-section" id="analog-form-section" style="display: none;">
-                    <h2 id="analog-form-title">New Analog Variable</h2>
-                    <form class="variable-form" data-type="analog">
-                        <input type="hidden" class="variable-id">
-                        <div class="form-group">
-                            <label>Name:</label>
-                            <input type="text" class="form-control variable-name" placeholder="e.g., TEMPERATURE_1" required>
-                        </div>
-
-                        <div class="form-group value-field">
-                            <label>Value:</label>
-                            <input type="text" class="form-control variable-value" placeholder="e.g., 1" >
-                        </div>
-
-                        <div class="form-group">
-                            <label>Description:</label>
-                            <input type="text" class="form-control variable-description" placeholder="Optional description">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                            <button type="button" class="btn btn-secondary cancel-form-btn">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Value</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="analog-tbody">
-                            <tr><td colspan="5" class="loading">Loading data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Command Tab -->
-            <div id="command-tab" class="tab-content">
-                <div class="controls">
-                    <button class="btn btn-success add-btn" data-type="command">➕ New Variable</button>
-                    <button class="btn btn-info batch-btn" data-type="command">📁 Batch Import</button>
-                </div>
-
-                <div class="batch-section" id="command-batch" style="display: none;">
-                    <h3>Batch Import - Command Variables</h3>
-                    <div class="batch-controls">
-                        <a href="/template.csv" download class="btn btn-info">📥 Download Template</a>
-                        <input type="file" id="command-csv-input" accept=".csv" style="display: none;">
-                        <button class="btn btn-success" id="command-upload-btn">📤 Upload CSV</button>
-                        <button class="btn btn-secondary batch-cancel-btn" data-type="command">Cancel</button>
-                    </div>
-                    <div id="command-batch-result" class="batch-result"></div>
-                </div>
-
-                <div class="form-section" id="command-form-section" style="display: none;">
-                    <h2 id="command-form-title">New Command Variable</h2>
-                    <form class="variable-form" data-type="command">
-                        <input type="hidden" class="variable-id">
-                        <div class="form-group">
-                            <label>Name:</label>
-                            <input type="text" class="form-control variable-name" placeholder="e.g., START_PUMP" required>
-                        </div>
-
-                        <div class="form-group value-field">
-                            <label>Value:</label>
-                            <input type="text" class="form-control variable-value" placeholder="e.g., 1" >
-                        </div>
-
-                        <div class="form-group">
-                            <label>Description:</label>
-                            <input type="text" class="form-control variable-description" placeholder="Optional description">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                            <button type="button" class="btn btn-secondary cancel-form-btn">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Value</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="command-tbody">
-                            <tr><td colspan="5" class="loading">Loading data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Configuration Tab -->
-            <div id="config-tab" class="tab-content">
-                <div class="form-section" style="display: block;">
-                    <h2>⚙️ Schneider RTU Configuration</h2>
-                    <p class="subtitle" style="margin-bottom: 25px;">Configure your Schneider RTU connection settings</p>
-
-                    <div id="config-current" class="info-box" style="display: none; margin-bottom: 25px;">
-                        <h3>Current Configuration</h3>
-                        <p><strong>Schneider Username:</strong> <span id="current-schneider-username">-</span></p>
-                        <p><strong>RTU IP:</strong> <span id="current-rtu-ip">-</span></p>
-                        <p style="margin-top: 10px; font-size: 12px; color: #666;">
-                            Last updated: <span id="config-status">Not configured</span>
-                        </p>
-                    </div>
-
-                    <form id="config-form">
-                        <div class="form-group">
-                            <label for="config-schneider-username">Schneider Username:</label>
-                            <input type="text" id="config-schneider-username" class="form-control"
-                                   placeholder="Enter Schneider username" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="config-schneider-password">Schneider Password:</label>
-                            <input type="password" id="config-schneider-password" class="form-control"
-                                   placeholder="Enter Schneider password" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="config-rtu-ip">RTU IP Address:</label>
-                            <input type="text" id="config-rtu-ip" class="form-control"
-                                   placeholder="e.g., 192.168.1.100" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">💾 Save Configuration</button>
-
-                        <div id="config-message" class="error-message"></div>
-                    </form>
-
-                    <div class="info-box" style="margin-top: 25px;">
-                        <p><strong>Demo Schneider credentials:</strong></p>
-                        <p>Username: schneider | Password: schneider123 | RTU IP: 192.168.1.100</p>
-                        <p style="margin-top: 10px; font-size: 12px;">
-                            ℹ️ These settings are required to connect to the Schneider RTU system.
-                        </p>
-                    </div>
-                </div>
-            </div>
+                <div id="config-message" class="error-message"></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-info"      id="btn-test-connection">🔌 Test Connection</button>
+            <button class="btn btn-primary"   id="btn-save-config">💾 Save Configuration</button>
+            <button class="btn btn-secondary" data-modal="modal-schneider-config">Cancel</button>
         </div>
     </div>
+</div>
 
-    <script src="/js/app.js"></script>
+<!-- ===== MODAL: TEST CONNECTION ===== -->
+<div class="modal-overlay" id="modal-test-conn">
+    <div class="modal-card modal-sm">
+        <div class="modal-header">
+            <h2>🔌 Test Connection</h2>
+            <button class="modal-close" data-modal="modal-test-conn">✕</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom:16px;color:#555;">Enter credentials to test the Schneider RTU connection:</p>
+            <div class="form-group">
+                <label>Schneider Username:</label>
+                <input type="text" id="test-schneider-user" class="form-control" placeholder="Schneider username">
+            </div>
+            <div class="form-group">
+                <label>Schneider Password:</label>
+                <input type="password" id="test-schneider-pass" class="form-control" placeholder="Schneider password">
+            </div>
+            <div class="form-group">
+                <label>RTU IP Address:</label>
+                <input type="text" id="test-rtu-ip" class="form-control" placeholder="e.g., 192.168.1.100">
+            </div>
+            <div id="test-conn-result" class="error-message"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary"   id="btn-run-test">▶ Run Test</button>
+            <button class="btn btn-secondary" data-modal="modal-test-conn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL: SYMBOL PROPERTIES ===== -->
+<div class="modal-overlay" id="modal-symbol-props">
+    <div class="modal-card" style="max-width:500px;">
+        <div class="modal-header">
+            <h2 id="symbol-props-title">⚡ Symbol Configuration</h2>
+            <button class="modal-close" data-modal="modal-symbol-props">✕</button>
+        </div>
+        <div class="modal-body">
+
+            <!-- Status field only -->
+            <div class="form-group">
+                <label>Status (display label):</label>
+                <select id="sym-prop-status" class="form-control">
+                    <option value="">-- none --</option>
+                    <option value="OPEN">OPEN</option>
+                    <option value="CLOSED">CLOSED</option>
+                    <option value="TRIPPED">TRIPPED</option>
+                    <option value="FAULT">FAULT</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Notes:</label>
+                <textarea id="sym-prop-notes" class="form-control" rows="2" placeholder="Optional notes"></textarea>
+            </div>
+
+            <!-- Automation Rule -->
+            <div class="modal-section-title" style="margin-top:18px;">
+                Automation Rule
+                <span style="font-size:11px;font-weight:400;color:#aaa;">(optional — change color based on variable)</span>
+            </div>
+
+            <div class="form-group">
+                <label>Variable Type:</label>
+                <select id="sym-var-type" class="form-control">
+                    <option value="">-- none --</option>
+                    <option value="status">Status</option>
+                    <option value="analog">Analog</option>
+                    <option value="command">Command</option>
+                </select>
+            </div>
+
+            <div class="form-group rule-row" id="rule-var-row" style="display:none;">
+                <label>Variable:</label>
+                <select id="sym-var-name" class="form-control"></select>
+            </div>
+
+            <div class="rule-block" id="rule-block" style="display:none;">
+                <div class="rule-current-val">
+                    Current value: <strong id="rule-current-val-display">—</strong>
+                </div>
+
+                <div class="form-group" style="margin-top:12px;">
+                    <label>Condition:</label>
+                    <select id="sym-var-condition" class="form-control">
+                        <option value="">-- select --</option>
+                        <option value="eq">= Equal to</option>
+                        <option value="gt">&gt; Greater than</option>
+                        <option value="lt">&lt; Less than</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="rule-threshold-row" style="display:none;">
+                    <label>Threshold value:</label>
+                    <input type="text" id="sym-var-threshold" class="form-control" placeholder="e.g., 1 or 100">
+                </div>
+
+                <div class="form-group" id="rule-action-row" style="display:none;">
+                    <label>Action — Change symbol color to:</label>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <input type="color" id="sym-var-action-color" value="#e74c3c"
+                               style="width:42px;height:34px;border:2px solid #e0e0e0;border-radius:6px;cursor:pointer;padding:2px;">
+                        <button type="button" onclick="document.getElementById('sym-var-action-color').value='#e74c3c'" class="color-preset" style="background:#e74c3c;">Red</button>
+                        <button type="button" onclick="document.getElementById('sym-var-action-color').value='#28a745'" class="color-preset" style="background:#28a745;">Green</button>
+                        <button type="button" onclick="document.getElementById('sym-var-action-color').value='#fd7e14'" class="color-preset" style="background:#fd7e14;">Orange</button>
+                        <button type="button" onclick="document.getElementById('sym-var-action-color').value='#667eea'" class="color-preset" style="background:#667eea;">Blue</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary"   id="btn-save-symbol-props">Save</button>
+            <button class="btn btn-secondary" data-modal="modal-symbol-props">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/oscillography.js"></script>
 </body>
 </html>
