@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Project-local Maven settings for Bottino Monitoring.
+
+  This file is used ONLY when building Bottino (via compilar.sh or
+  `mvn -s maven-settings.xml ...`). It does NOT affect your global
+  ~/.m2/settings.xml, so other projects (e.g. Lakaut) keep using the
+  Lakaut Artifactory as normal.
+
+  Why this exists: the Bottino project needs dependencies (Spring Boot,
+  Apache POI, etc.) that live on Maven Central. The global Lakaut
+  settings redirect "central" to an internal http:// Artifactory that
+  modern Maven blocks for security. This file points central straight
+  at Maven Central over https://.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <!-- Keep using the same local repo so downloaded artifacts are shared -->
+    <localRepository>${user.home}/.m2/repository</localRepository>
+
+    <profiles>
+        <profile>
+            <id>bottino-central</id>
+            <repositories>
+                <repository>
+                    <id>maven-central</id>
+                    <url>https://repo.maven.apache.org/maven2</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>false</enabled></snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>maven-central-plugins</id>
+                    <url>https://repo.maven.apache.org/maven2</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>false</enabled></snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>bottino-central</activeProfile>
+    </activeProfiles>
+
+</settings>

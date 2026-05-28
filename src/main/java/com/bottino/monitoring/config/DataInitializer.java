@@ -23,38 +23,34 @@ public class DataInitializer implements CommandLineRunner {
     
     @Override
     public void run(String... args) throws Exception {
-        // Create demo users if none exist
-        if (userRepository.count() == 0) {
-            // User 1: Without Schneider config (first time login)
-            User user1 = new User();
-            user1.setUsername("bottino");
-            user1.setPassword("bottino123");
-            user1.setHasToken(false);
-            user1.setToken(null);
-            user1.setHasSchneiderConfig(false);
-            user1.setSchneiderUsername(null);
-            user1.setSchneiderPassword(null);
-            user1.setRtuIp(null);
-            userRepository.save(user1);
-            
-            // User 2: With Schneider config already set (demo)
-            User user2 = new User();
-            user2.setUsername("admin");
-            user2.setPassword("admin123");
-            user2.setHasToken(true);
-            user2.setToken("ADMIN_TOKEN_2024");
-            user2.setHasSchneiderConfig(true);
-            user2.setSchneiderUsername("Engineer");
-            user2.setSchneiderPassword("Engineer1!");
-            user2.setRtuIp("192.168.2.1");
-            userRepository.save(user2);
-            
-            System.out.println("✓ Demo users created:");
-            System.out.println("  - Username: bottino, Password: bottino123, Token: BOTTINO_SECRET_TOKEN_2024");
-            System.out.println("    (First time login - will require Schneider config)");
-            System.out.println("  - Username: admin, Password: admin123, Token: ADMIN_TOKEN_2024");
-            System.out.println("    (Already configured - direct access)");
-            System.out.println("  - Schneider demo credentials: schneider / schneider123 / 192.168.1.100");
-        }
+        // Create users if they don't exist yet (safe to run multiple times)
+        createUserIfNotExists("bottino",      "bottino123",      "BOTTINO_TOKEN_2024",  "configurador", true,  true,  "Engineer", "Engineer1!", "192.168.2.1");
+        createUserIfNotExists("admin",        "admin123",        "ADMIN_TOKEN_2024",    "configurador", true,  true,  "Engineer", "Engineer1!", "192.168.2.1");
+        createUserIfNotExists("configurador", "configurador123", "CONFIG_TOKEN_2024",   "configurador", true,  false, null, null, null);
+        createUserIfNotExists("operador",     "operador123",     "OPERADOR_TOKEN_2024", "operador",     true,  false, null, null, null);
+
+        System.out.println("✓ Users ready:");
+        System.out.println("  - bottino      / bottino123      (configurador) token: BOTTINO_TOKEN_2024");
+        System.out.println("  - admin        / admin123        (configurador) token: ADMIN_TOKEN_2024");
+        System.out.println("  - configurador / configurador123 (configurador) token: CONFIG_TOKEN_2024");
+        System.out.println("  - operador     / operador123     (operador)     token: OPERADOR_TOKEN_2024");
+    }
+
+    private void createUserIfNotExists(String username, String password, String token,
+                                       String role, boolean hasToken, boolean hasSchneiderConfig,
+                                       String schneiderUser, String schneiderPass, String rtuIp) {
+        if (userRepository.findByUsername(username).isPresent()) return;
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setToken(token);
+        user.setRole(role);
+        user.setHasToken(hasToken);
+        user.setHasSchneiderConfig(hasSchneiderConfig);
+        user.setSchneiderUsername(schneiderUser);
+        user.setSchneiderPassword(schneiderPass);
+        user.setRtuIp(rtuIp);
+        userRepository.save(user);
     }
 }

@@ -11,4 +11,5 @@ public class LoginResponse {
     private boolean requiresSchneiderConfig;
     private String message;
     private String sessionToken;
+    private String role;
 }

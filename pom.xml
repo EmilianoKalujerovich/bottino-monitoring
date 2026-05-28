@@ -49,6 +49,13 @@
             <version>1.10.0</version>
         </dependency>
 
+        <!-- Apache POI for Excel (.xlsx) parsing -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+
         <!-- Apache HttpClient for Schneider API -->
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>

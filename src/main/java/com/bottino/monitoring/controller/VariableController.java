@@ -165,4 +165,28 @@ public class VariableController {
          return ResponseEntity.badRequest().body(response);
       }
    }
+
+   // ========== EXCEL IMPORT (ALL VARIABLE TYPES) ==========
+
+   @PostMapping("/import-excel")
+   public ResponseEntity<Map<String, Object>> importExcel(@RequestParam("file") MultipartFile file,
+         @RequestHeader(value = "X-Username", required = false) String username) {
+      try {
+         Map<String, Integer> counts = variableService.importAllVariablesFromExcel(file, username);
+         int total = counts.values().stream().mapToInt(Integer::intValue).sum();
+         Map<String, Object> response = new HashMap<>();
+         response.put("success", true);
+         response.put("counts", counts);
+         response.put("message", total + " variables imported ("
+               + counts.get("status") + " status, "
+               + counts.get("analog") + " analog, "
+               + counts.get("command") + " command)");
+         return ResponseEntity.ok(response);
+      } catch (Exception e) {
+         Map<String, Object> response = new HashMap<>();
+         response.put("success", false);
+         response.put("message", "Error importing Excel: " + e.getMessage());
+         return ResponseEntity.badRequest().body(response);
+      }
+   }
 }

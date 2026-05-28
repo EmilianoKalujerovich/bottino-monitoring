@@ -23,10 +23,14 @@ public class User {
     private String password;
     
     @Column(nullable = false)
-    private Boolean hasToken = true; // All users require token now
+    private Boolean hasToken = true;
     
     @Column(length = 255)
     private String token;
+
+    // Role: "configurador" or "operador"
+    @Column(nullable = false, length = 20, columnDefinition = "varchar(20) default 'configurador'")
+    private String role = "configurador";
     
     // Schneider RTU Configuration
     @Column(length = 100)

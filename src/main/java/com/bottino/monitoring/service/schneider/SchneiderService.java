@@ -119,14 +119,20 @@ public class SchneiderService {
          System.out.println("Response Code: " + responseCode);
 
          if (responseCode == 200) {
-            // Read response body
+            // Read response body and check for login error
+            String responseBody;
             try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-               StringBuilder response = new StringBuilder();
+               StringBuilder sb = new StringBuilder();
                String line;
-               while ((line = br.readLine()) != null) {
-                  response.append(line);
-               }
-               System.out.println("Response: " + response.toString());
+               while ((line = br.readLine()) != null) sb.append(line);
+               responseBody = sb.toString();
+            }
+            System.out.println("Response: " + responseBody);
+
+            if (responseBody.contains("\"status\":\"error\"")) {
+               System.err.println("❌ Schneider login rejected — check credentials. RTU response: " + responseBody);
+               conn.disconnect();
+               return null;
             }
 
             // Extract session ID from cookies
@@ -153,14 +159,33 @@ public class SchneiderService {
    }
 
    /**
-    * Get session ID from cache or login
+    * Get session ID from cache or login. Empty strings are treated as invalid.
     */
    private String getSessionId(String rtuIp, String username, String password) {
       String sessionId = sessionCache.get(rtuIp);
-      if (sessionId == null) {
-         sessionId = login(username, password, rtuIp);
+      if (sessionId == null || sessionId.isEmpty()) {
+         sessionId = freshLogin(rtuIp, username, password);
       }
       return sessionId;
+   }
+
+   /**
+    * Force a new login, bypassing the cache.
+    */
+   private String freshLogin(String rtuIp, String username, String password) {
+      sessionCache.remove(rtuIp);
+      String sessionId = login(username, password, rtuIp);
+      if (sessionId != null && !sessionId.isEmpty()) {
+         sessionCache.put(rtuIp, sessionId);
+         System.out.println("✅ New session cached for " + rtuIp);
+      } else {
+         System.err.println("❌ Login returned no session ID for " + rtuIp);
+      }
+      return (sessionId != null && !sessionId.isEmpty()) ? sessionId : null;
+   }
+
+   public void clearSessionCache(String rtuIp) {
+      sessionCache.remove(rtuIp);
    }
 
    /**
@@ -188,17 +213,11 @@ public class SchneiderService {
 
          String url = "https://" + rtuIp + endpoint;
 
-         HttpHeaders headers = new HttpHeaders();
-         headers.add("Cookie", "SESSIONID=" + sessionId);
+         ResponseEntity<String> response = executeGetWithRetry(url, sessionId, rtuIp, username, password);
 
-         HttpEntity<String> request = new HttpEntity<>(headers);
-
-         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
-
-         if (response.getStatusCode() == HttpStatus.OK) {
+         if (response != null && response.getStatusCode() == HttpStatus.OK) {
             String xmlContent = cleanXmlContent(response.getBody());
             variables = parseXmlVariables(xmlContent, type);
-            //variables = parseXmlVariables(response.getBody(), type);
          }
 
       } catch (Exception e) {
@@ -345,17 +364,9 @@ public class SchneiderService {
                      + "<inputNum>%d</inputNum>" + "</coreDbReadMultData>" + "</coreDbReadMultDataArray>" + "</coreDbReadMultDatas>"
                      + "</soapenv:Body>" + "</soapenv:Envelope>", inputNames.toString(), type, variableNames.size());
 
-         HttpHeaders headers = new HttpHeaders();
-         headers.setContentType(MediaType.valueOf("text/xml; charset=UTF-8"));
-         headers.setAccept(Arrays.asList(MediaType.APPLICATION_XML, MediaType.TEXT_XML));
-         headers.add("SOAPAction", "urn:soapServ#coreDbReadMultDatas");
-         headers.add("Cookie", "SESSIONID=" + sessionId);
+         ResponseEntity<String> response = executeSoapWithRetry(url, soapBody, sessionId, rtuIp, username, password);
 
-         HttpEntity<String> request = new HttpEntity<>(soapBody, headers);
-
-         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-
-         if (response.getStatusCode() == HttpStatus.OK) {
+         if (response != null && response.getStatusCode() == HttpStatus.OK) {
             values = parseSoapResponse(response.getBody(), variableNames);
          }
 
@@ -364,6 +375,44 @@ public class SchneiderService {
       }
 
       return values;
+   }
+
+   private ResponseEntity<String> executeGetWithRetry(String url, String sessionId, String rtuIp, String username, String password) {
+      HttpHeaders headers = new HttpHeaders();
+      headers.add("Cookie", "SESSIONID=" + sessionId);
+      HttpEntity<String> request = new HttpEntity<>(headers);
+      try {
+         return restTemplate.exchange(url, HttpMethod.GET, request, String.class);
+      } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized e) {
+         System.out.println("⚠️ Got 401 on GET, re-authenticating...");
+         String newSession = freshLogin(rtuIp, username, password);
+         if (newSession == null) return null;
+         HttpHeaders retryHeaders = new HttpHeaders();
+         retryHeaders.add("Cookie", "SESSIONID=" + newSession);
+         return restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(retryHeaders), String.class);
+      }
+   }
+
+   private ResponseEntity<String> executeSoapWithRetry(String url, String soapBody, String sessionId, String rtuIp, String username, String password) {
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.valueOf("text/xml; charset=UTF-8"));
+      headers.setAccept(Arrays.asList(MediaType.APPLICATION_XML, MediaType.TEXT_XML));
+      headers.add("SOAPAction", "urn:soapServ#coreDbReadMultDatas");
+      headers.add("Cookie", "SESSIONID=" + sessionId);
+      HttpEntity<String> request = new HttpEntity<>(soapBody, headers);
+      try {
+         return restTemplate.postForEntity(url, request, String.class);
+      } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized e) {
+         System.out.println("⚠️ Got 401 on SOAP, re-authenticating...");
+         String newSession = freshLogin(rtuIp, username, password);
+         if (newSession == null) return null;
+         HttpHeaders retryHeaders = new HttpHeaders();
+         retryHeaders.setContentType(MediaType.valueOf("text/xml; charset=UTF-8"));
+         retryHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_XML, MediaType.TEXT_XML));
+         retryHeaders.add("SOAPAction", "urn:soapServ#coreDbReadMultDatas");
+         retryHeaders.add("Cookie", "SESSIONID=" + newSession);
+         return restTemplate.postForEntity(url, new HttpEntity<>(soapBody, retryHeaders), String.class);
+      }
    }
 
    /**
@@ -425,8 +474,13 @@ public class SchneiderService {
          // Get variable names list
          List<String> names = variables.stream().map(SchneiderVariable::getName).toList();
 
-         // Get values
+         // Get values — retry with a fresh session if the first attempt returns nothing
          Map<String, String> values = getVariableValues(names, type, rtuIp, schneiderUsername, schneiderPassword);
+         if (values.isEmpty() && !names.isEmpty()) {
+            System.out.println("⚠️  SOAP returned no values, clearing session cache and retrying...");
+            clearSessionCache(rtuIp);
+            values = getVariableValues(names, type, rtuIp, schneiderUsername, schneiderPassword);
+         }
 
          // Merge values
          for (SchneiderVariable var : variables) {

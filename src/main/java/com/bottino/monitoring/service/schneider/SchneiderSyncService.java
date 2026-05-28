@@ -3,6 +3,7 @@ package com.bottino.monitoring.service.schneider;
 import com.bottino.monitoring.dto.SchneiderVariable;
 import com.bottino.monitoring.model.*;
 import com.bottino.monitoring.repository.*;
+import com.bottino.monitoring.service.VariableHistoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,6 +32,9 @@ public class SchneiderSyncService {
    @Autowired
    private UserRepository userRepository;
 
+   @Autowired
+   private VariableHistoryService variableHistoryService;
+
    private String currentActiveTab = "status";
 
    private String currentUsername = null;
@@ -55,7 +59,7 @@ public class SchneiderSyncService {
       }
 
       try {
-         if (currentUsername == null || currentActiveTab == null) {
+         if (currentUsername == null) {
             return;
          }
 
@@ -65,19 +69,11 @@ public class SchneiderSyncService {
             return;
          }
 
-         System.out.println("🔄 Syncing " + currentActiveTab + " variables with Schneider...");
+         System.out.println("🔄 Syncing all variables with Schneider...");
 
-         switch (currentActiveTab) {
-            case "status":
-               syncStatusVariables();
-               break;
-            case "analog":
-               syncAnalogVariables();
-               break;
-            case "command":
-               syncCommandVariables();
-               break;
-         }
+         syncStatusVariables();
+         syncAnalogVariables();
+         syncCommandVariables();
       } catch (Exception e) {
          System.err.println("❌ Error syncing variables: " + e.getMessage());
          e.printStackTrace();
@@ -106,6 +102,9 @@ public class SchneiderSyncService {
          }
 
          statusRepository.save(var);
+
+         // Record history if enabled
+         variableHistoryService.recordValueIfEnabled(var.getId(), "status", var.getName(), var.getValue());
       }
 
       System.out.println("✓ Status variables synced: " + ourVars.size() + " variables processed");
@@ -129,6 +128,9 @@ public class SchneiderSyncService {
          }
 
          analogRepository.save(var);
+
+         // Record history if enabled
+         variableHistoryService.recordValueIfEnabled(var.getId(), "analog", var.getName(), var.getValue());
       }
 
       System.out.println("✓ Analog variables synced: " + ourVars.size() + " variables processed");
@@ -153,9 +155,39 @@ public class SchneiderSyncService {
          }
 
          commandRepository.save(var);
+
+         // Record history if enabled
+         variableHistoryService.recordValueIfEnabled(var.getId(), "command", var.getName(), var.getValue());
       }
 
       System.out.println("✓ Command variables synced: " + ourVars.size() + " variables processed");
+   }
+
+   /**
+    * Sync all variables of a given type for a user — called after bulk import.
+    */
+   public void syncAllVariablesForType(String type, String username) {
+      User user = userRepository.findByUsername(username).orElse(null);
+      if (user == null || !user.getHasSchneiderConfig()) {
+         return;
+      }
+
+      currentUsername = username;
+      currentActiveTab = type;
+
+      System.out.println("🔄 Post-import sync for " + type + " variables...");
+
+      switch (type) {
+         case "status":
+            syncStatusVariables();
+            break;
+         case "analog":
+            syncAnalogVariables();
+            break;
+         case "command":
+            syncCommandVariables();
+            break;
+      }
    }
 
    /**

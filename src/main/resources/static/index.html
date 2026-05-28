@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bottino Monitoring System</title>
+    <title>Bottino Monitoring</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
@@ -48,18 +50,21 @@
 <div id="login-screen" class="screen active">
     <div class="login-container">
         <div class="login-card">
-            <h1>🔐 Bottino Monitoring</h1>
-            <p class="subtitle">Please enter your credentials</p>
+            <div class="login-logo">
+                <div class="login-logo-icon">⚡</div>
+                <h1>Bottino Monitoring</h1>
+            </div>
+            <p class="subtitle">Sign in to your account</p>
             <form id="login-form">
                 <div class="form-group">
-                    <label for="username">Username:</label>
+                    <label for="username">Username</label>
                     <input type="text" id="username" class="form-control" placeholder="Enter username" required autocomplete="username">
                 </div>
                 <div class="form-group">
-                    <label for="password">Password:</label>
+                    <label for="password">Password</label>
                     <input type="password" id="password" class="form-control" placeholder="Enter password" required autocomplete="current-password">
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">Login</button>
+                <button type="submit" class="btn btn-primary btn-full">Sign In</button>
                 <div id="login-error" class="error-message"></div>
             </form>
         </div>
@@ -70,15 +75,18 @@
 <div id="token-screen" class="screen">
     <div class="login-container">
         <div class="login-card">
-            <h1>🔑 Token Required</h1>
-            <p class="subtitle">Please enter your security token</p>
+            <div class="login-logo">
+                <div class="login-logo-icon">🔑</div>
+                <h1>Security Token</h1>
+            </div>
+            <p class="subtitle">Two-factor verification required</p>
             <form id="token-form">
                 <div class="form-group">
-                    <label for="token-input">Security Token:</label>
+                    <label for="token-input">Security Token</label>
                     <input type="password" id="token-input" class="form-control" placeholder="Enter your token" required autocomplete="off">
                 </div>
-                <button type="submit" class="btn btn-primary btn-full">Validate</button>
-                <button type="button" id="token-back-btn" class="btn btn-secondary btn-full" style="margin-top:10px;">Back</button>
+                <button type="submit" class="btn btn-primary btn-full">Validate Token</button>
+                <button type="button" id="token-back-btn" class="btn btn-secondary btn-full" style="margin-top:10px;">Back to Login</button>
                 <div id="token-error" class="error-message"></div>
             </form>
         </div>
@@ -89,17 +97,31 @@
 <div id="main-screen" class="screen">
 
     <div class="navbar">
-        <h1>📊 Bottino Monitoring System</h1>
+        <div class="navbar-brand">
+            <div class="navbar-brand-icon">⚡</div>
+            <h1>Bottino Monitoring</h1>
+        </div>
         <div class="navbar-right">
+            <div class="navbar-status">
+                <div class="navbar-status-dot"></div>
+                ONLINE
+            </div>
             <div class="user-menu" id="user-menu">
                 <div class="user-avatar" id="user-avatar">U</div>
                 <span class="user-name-label" id="user-name-label">User</span>
+                <span id="user-role-label" class="user-role-badge role-configurador">CONFIGURADOR</span>
                 <span class="user-caret">▾</span>
                 <div class="user-dropdown" id="user-dropdown">
-                    <div class="dropdown-item" id="menu-user-info"><span>👤</span> User Information</div>
-                    <div class="dropdown-item" id="menu-schneider-config"><span>⚙️</span> Schneider Configuration</div>
+                    <div class="dropdown-item" id="menu-user-info">
+                        <span class="dropdown-item-icon">👤</span> User Information
+                    </div>
+                    <div class="dropdown-item" id="menu-schneider-config">
+                        <span class="dropdown-item-icon">⚙️</span> Schneider Configuration
+                    </div>
                     <div class="dropdown-divider"></div>
-                    <div class="dropdown-item dropdown-logout" id="menu-logout"><span>🚪</span> Logout</div>
+                    <div class="dropdown-item dropdown-logout" id="menu-logout">
+                        <span class="dropdown-item-icon">→</span> Sign Out
+                    </div>
                 </div>
             </div>
         </div>
@@ -110,23 +132,23 @@
         <!-- LEFT SIDEBAR -->
         <div class="sidebar">
             <nav class="sidebar-nav">
-                <a class="sidebar-nav-item active" data-sidebar="variables" href="#">
-                    <span class="sidebar-nav-icon">📋</span>
+                <a class="sidebar-nav-item active operator-hide" data-sidebar="variables" href="#">
+                    <span class="sidebar-nav-icon">▤</span>
                     <span class="sidebar-nav-label">Variables</span>
                 </a>
                 <a class="sidebar-nav-item" data-sidebar="panel" href="#">
-                    <span class="sidebar-nav-icon">🖥️</span>
+                    <span class="sidebar-nav-icon">◈</span>
                     <span class="sidebar-nav-label">Panel</span>
                 </a>
                 <a class="sidebar-nav-item" data-sidebar="oscilo" href="#">
-                    <span class="sidebar-nav-icon">📈</span>
+                    <span class="sidebar-nav-icon">∿</span>
                     <span class="sidebar-nav-label">Oscilografías</span>
                 </a>
             </nav>
 
             <div class="sidebar-pane active" id="sidebar-variables">
                 <p class="sb-hint" style="padding:16px 12px;color:#aaa;font-size:12px;">
-                    Manage variables in the main view.
+                    Gestionar variables en la vista principal.
                 </p>
             </div>
 
@@ -135,12 +157,12 @@
                 <div class="osc-upload-area" id="osc-upload-area">
                     <div class="osc-upload-slot" id="osc-cfg-slot">
                         <input type="file" id="osc-cfg-input" accept=".cfg" style="display:none">
-                        <button class="osc-upload-btn" onclick="document.getElementById('osc-cfg-input').click()">📄 .CFG</button>
+                        <button class="osc-upload-btn" onclick="document.getElementById('osc-cfg-input').click()">.CFG</button>
                         <span id="osc-cfg-name" class="osc-file-name">Sin archivo</span>
                     </div>
                     <div class="osc-upload-slot" id="osc-dat-slot">
                         <input type="file" id="osc-dat-input" accept=".dat" style="display:none">
-                        <button class="osc-upload-btn" onclick="document.getElementById('osc-dat-input').click()">📊 .DAT</button>
+                        <button class="osc-upload-btn" onclick="document.getElementById('osc-dat-input').click()">.DAT</button>
                         <span id="osc-dat-name" class="osc-file-name">Sin archivo</span>
                     </div>
                     <button class="btn btn-primary" id="osc-analyze-btn" style="width:100%;margin-top:8px;font-size:12px;" disabled>⚡ Analizar</button>
@@ -157,23 +179,25 @@
             <div class="sidebar-pane" id="sidebar-panel">
                 <div class="sb-section-title" style="display:flex;justify-content:space-between;align-items:center;">
                     Panels
-                    <button class="btn-icon" id="btn-new-panel" title="New panel">＋</button>
+                    <button class="btn-icon operator-hide" id="btn-new-panel" title="New panel">＋</button>
                 </div>
                 <div id="panel-list" class="panel-list"></div>
 
-                <div class="sb-section-title" style="margin-top:10px;">ANSI / IEC Symbols</div>
+                <div id="palette-section"><div class="sb-section-title" style="margin-top:10px;">ANSI / IEC Symbols</div>
                 <div class="sb-search-wrap">
                     <input type="text" id="symbol-search" class="sb-search-input" placeholder="🔍  Search symbols…">
                 </div>
                 <p class="sb-hint">Drag symbols onto the canvas</p>
                 <div class="symbol-palette" id="symbol-palette"></div>
 
+                </div><!-- /palette-section -->
                 <div class="sb-section-title" style="margin-top:14px;">Tools</div>
                 <div class="panel-tools">
-                    <button class="tool-btn active" id="tool-select">↖ Select</button>
-                    <button class="tool-btn" id="tool-connect">↝ Connect</button>
-                    <button class="tool-btn tool-btn-danger" id="tool-delete">🗑 Delete</button>
-                    <button class="tool-btn tool-btn-warn" id="tool-clear">✕ Clear</button>
+                    <button class="tool-btn active operator-hide" id="tool-select">↖ Select</button>
+                    <button class="tool-btn operator-hide" id="tool-connect">↝ Connect</button>
+                    <button class="tool-btn tool-btn-danger operator-hide" id="tool-delete">⌫ Delete</button>
+                    <button class="tool-btn tool-btn-warn operator-hide" id="tool-clear">✕ Clear All</button>
+
                 </div>
             </div>
         </div>
@@ -183,6 +207,11 @@
 
             <!-- VARIABLES VIEW -->
             <div id="view-variables" class="view active">
+                <div class="controls" style="margin-bottom:10px;">
+                    <input type="file" id="excel-import-input" accept=".xlsx" style="display:none;">
+                    <button class="btn btn-info" id="excel-import-btn">📊 Import All from Excel (.xlsx)</button>
+                    <span id="excel-import-result" class="batch-result" style="display:none;"></span>
+                </div>
                 <div class="tabs">
                     <button class="tab-btn active" data-tab="status">Status</button>
                     <button class="tab-btn" data-tab="analog">Analog</button>
@@ -192,15 +221,15 @@
                 <!-- STATUS TAB -->
                 <div id="status-tab" class="tab-content active">
                     <div class="controls">
-                        <button class="btn btn-success add-btn" data-type="status">➕ New Variable</button>
-                        <button class="btn btn-info batch-btn" data-type="status">📁 Batch Import</button>
+                        <button class="btn btn-success add-btn" data-type="status">+ New Variable</button>
+                        <button class="btn btn-info batch-btn" data-type="status">↓ Batch Import</button>
                     </div>
                     <div class="batch-section" id="status-batch" style="display:none;">
-                        <h3>Batch Import - Status Variables</h3>
+                        <h3>Batch Import — Status Variables</h3>
                         <div class="batch-controls">
-                            <a href="/template.csv" download class="btn btn-info">📥 Download Template</a>
+                            <a href="/template.csv" download class="btn btn-info">↓ Download Template</a>
                             <input type="file" id="status-csv-input" accept=".csv" style="display:none;">
-                            <button class="btn btn-success" id="status-upload-btn">📤 Upload CSV</button>
+                            <button class="btn btn-success" id="status-upload-btn">↑ Upload CSV</button>
                             <button class="btn btn-secondary batch-cancel-btn" data-type="status">Cancel</button>
                         </div>
                         <div id="status-batch-result" class="batch-result"></div>
@@ -227,15 +256,15 @@
                 <!-- ANALOG TAB -->
                 <div id="analog-tab" class="tab-content">
                     <div class="controls">
-                        <button class="btn btn-success add-btn" data-type="analog">➕ New Variable</button>
-                        <button class="btn btn-info batch-btn" data-type="analog">📁 Batch Import</button>
+                        <button class="btn btn-success add-btn" data-type="analog">+ New Variable</button>
+                        <button class="btn btn-info batch-btn" data-type="analog">↓ Batch Import</button>
                     </div>
                     <div class="batch-section" id="analog-batch" style="display:none;">
-                        <h3>Batch Import - Analog Variables</h3>
+                        <h3>Batch Import — Analog Variables</h3>
                         <div class="batch-controls">
-                            <a href="/template.csv" download class="btn btn-info">📥 Download Template</a>
+                            <a href="/template.csv" download class="btn btn-info">↓ Download Template</a>
                             <input type="file" id="analog-csv-input" accept=".csv" style="display:none;">
-                            <button class="btn btn-success" id="analog-upload-btn">📤 Upload CSV</button>
+                            <button class="btn btn-success" id="analog-upload-btn">↑ Upload CSV</button>
                             <button class="btn btn-secondary batch-cancel-btn" data-type="analog">Cancel</button>
                         </div>
                         <div id="analog-batch-result" class="batch-result"></div>
@@ -262,15 +291,15 @@
                 <!-- COMMAND TAB -->
                 <div id="command-tab" class="tab-content">
                     <div class="controls">
-                        <button class="btn btn-success add-btn" data-type="command">➕ New Variable</button>
-                        <button class="btn btn-info batch-btn" data-type="command">📁 Batch Import</button>
+                        <button class="btn btn-success add-btn" data-type="command">+ New Variable</button>
+                        <button class="btn btn-info batch-btn" data-type="command">↓ Batch Import</button>
                     </div>
                     <div class="batch-section" id="command-batch" style="display:none;">
-                        <h3>Batch Import - Command Variables</h3>
+                        <h3>Batch Import — Command Variables</h3>
                         <div class="batch-controls">
-                            <a href="/template.csv" download class="btn btn-info">📥 Download Template</a>
+                            <a href="/template.csv" download class="btn btn-info">↓ Download Template</a>
                             <input type="file" id="command-csv-input" accept=".csv" style="display:none;">
-                            <button class="btn btn-success" id="command-upload-btn">📤 Upload CSV</button>
+                            <button class="btn btn-success" id="command-upload-btn">↑ Upload CSV</button>
                             <button class="btn btn-secondary batch-cancel-btn" data-type="command">Cancel</button>
                         </div>
                         <div id="command-batch-result" class="batch-result"></div>
@@ -299,20 +328,20 @@
             <div id="view-panel" class="view">
                 <div class="panel-canvas-wrapper">
                     <div class="panel-canvas-header">
-                        <span>🖥️ <strong id="current-panel-name">Panel</strong></span>
+                        <span>◈ <strong id="current-panel-name">Panel</strong></span>
                         <div style="display:flex;align-items:center;gap:12px;">
                             <span class="panel-header-hint">Drag symbols · Double-click to configure · Connect tool to link</span>
-                            <button class="btn btn-success" id="btn-save-panel" style="padding:6px 14px;font-size:12px;">💾 Save Panel</button>
+                            <button class="btn btn-success operator-hide" id="btn-save-panel" style="padding:6px 14px;font-size:12px;">↓ Save Panel</button>
                         </div>
                     </div>
                     <div class="panel-canvas-container" id="panel-canvas-container">
                         <svg id="panel-canvas" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                                    <polygon points="0 0, 10 3.5, 0 7" fill="#667eea"/>
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#F59E0B"/>
                                 </marker>
                                 <marker id="arrowhead-sel" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                                    <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c"/>
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#EF4444"/>
                                 </marker>
                             </defs>
                             <g id="connections-layer"></g>
@@ -468,7 +497,7 @@
 <div class="modal-overlay" id="modal-user-info">
     <div class="modal-card">
         <div class="modal-header">
-            <h2>👤 User Information</h2>
+            <h2>User Information</h2>
             <button class="modal-close" data-modal="modal-user-info">✕</button>
         </div>
         <div class="modal-body">
@@ -492,7 +521,7 @@
 <div class="modal-overlay" id="modal-schneider-config">
     <div class="modal-card">
         <div class="modal-header">
-            <h2>⚙️ Schneider RTU Configuration</h2>
+            <h2>⚙️ RTU Configuration</h2>
             <button class="modal-close" data-modal="modal-schneider-config">✕</button>
         </div>
         <div class="modal-body">
@@ -518,8 +547,8 @@
             </form>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-info"      id="btn-test-connection">🔌 Test Connection</button>
-            <button class="btn btn-primary"   id="btn-save-config">💾 Save Configuration</button>
+            <button class="btn btn-info"      id="btn-test-connection">⚡ Test Connection</button>
+            <button class="btn btn-primary"   id="btn-save-config">↓ Save Configuration</button>
             <button class="btn btn-secondary" data-modal="modal-schneider-config">Cancel</button>
         </div>
     </div>
@@ -529,7 +558,7 @@
 <div class="modal-overlay" id="modal-test-conn">
     <div class="modal-card modal-sm">
         <div class="modal-header">
-            <h2>🔌 Test Connection</h2>
+            <h2>Test RTU Connection</h2>
             <button class="modal-close" data-modal="modal-test-conn">✕</button>
         </div>
         <div class="modal-body">
@@ -557,79 +586,406 @@
 
 <!-- ===== MODAL: SYMBOL PROPERTIES ===== -->
 <div class="modal-overlay" id="modal-symbol-props">
-    <div class="modal-card" style="max-width:500px;">
+    <div class="modal-card cb-props-card">
         <div class="modal-header">
-            <h2 id="symbol-props-title">⚡ Symbol Configuration</h2>
+            <h2 id="symbol-props-title">Symbol Configuration</h2>
             <button class="modal-close" data-modal="modal-symbol-props">✕</button>
         </div>
         <div class="modal-body">
 
-            <!-- Status field only -->
-            <div class="form-group">
-                <label>Status (display label):</label>
-                <select id="sym-prop-status" class="form-control">
-                    <option value="">-- none --</option>
-                    <option value="OPEN">OPEN</option>
-                    <option value="CLOSED">CLOSED</option>
-                    <option value="TRIPPED">TRIPPED</option>
-                    <option value="FAULT">FAULT</option>
-                </select>
-            </div>
+            <!-- Notes (always visible) -->
             <div class="form-group">
                 <label>Notes:</label>
                 <textarea id="sym-prop-notes" class="form-control" rows="2" placeholder="Optional notes"></textarea>
             </div>
 
-            <!-- Automation Rule -->
-            <div class="modal-section-title" style="margin-top:18px;">
-                Automation Rule
-                <span style="font-size:11px;font-weight:400;color:#aaa;">(optional — change color based on variable)</span>
-            </div>
-
+            <!-- Rotation (always visible) -->
             <div class="form-group">
-                <label>Variable Type:</label>
-                <select id="sym-var-type" class="form-control">
-                    <option value="">-- none --</option>
-                    <option value="status">Status</option>
-                    <option value="analog">Analog</option>
-                    <option value="command">Command</option>
+                <label>Rotación:</label>
+                <select id="sym-rotation" class="form-control">
+                    <option value="0">0° — Normal</option>
+                    <option value="90">90° — Derecha</option>
+                    <option value="180">180° — Invertido</option>
+                    <option value="270">270° — Izquierda</option>
                 </select>
             </div>
 
-            <div class="form-group rule-row" id="rule-var-row" style="display:none;">
-                <label>Variable:</label>
-                <select id="sym-var-name" class="form-control"></select>
-            </div>
+            <!-- ====== CB-SPECIFIC CONFIG (only for Circuit Breaker) ====== -->
+            <div id="cb-config-section" style="display:none;">
+                <div class="modal-section-title" style="margin-top:14px;">⚡ Configuración Interruptor</div>
 
-            <div class="rule-block" id="rule-block" style="display:none;">
-                <div class="rule-current-val">
-                    Current value: <strong id="rule-current-val-display">—</strong>
-                </div>
-
-                <div class="form-group" style="margin-top:12px;">
-                    <label>Condition:</label>
-                    <select id="sym-var-condition" class="form-control">
-                        <option value="">-- select --</option>
-                        <option value="eq">= Equal to</option>
-                        <option value="gt">&gt; Greater than</option>
-                        <option value="lt">&lt; Less than</option>
+                <!-- Status mode -->
+                <div class="form-group">
+                    <label>Modo de estado:</label>
+                    <select id="cb-status-mode" class="form-control" onchange="onCBStatusModeChange()">
+                        <option value="double">Doble (1 variable: 0=tránsito, 1=abierto, 2=cerrado, 3=error)</option>
+                        <option value="simple">Simple (2 variables: Abierto + Cerrado)</option>
                     </select>
                 </div>
 
-                <div class="form-group" id="rule-threshold-row" style="display:none;">
-                    <label>Threshold value:</label>
-                    <input type="text" id="sym-var-threshold" class="form-control" placeholder="e.g., 1 or 100">
+                <!-- Double mode -->
+                <div id="cb-double-vars">
+                    <div class="form-group">
+                        <label>Variable Status:</label>
+                        <select id="cb-status-var-double" class="form-control"><option value="">-- seleccionar --</option></select>
+                    </div>
                 </div>
 
-                <div class="form-group" id="rule-action-row" style="display:none;">
-                    <label>Action — Change symbol color to:</label>
-                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                        <input type="color" id="sym-var-action-color" value="#e74c3c"
-                               style="width:42px;height:34px;border:2px solid #e0e0e0;border-radius:6px;cursor:pointer;padding:2px;">
-                        <button type="button" onclick="document.getElementById('sym-var-action-color').value='#e74c3c'" class="color-preset" style="background:#e74c3c;">Red</button>
-                        <button type="button" onclick="document.getElementById('sym-var-action-color').value='#28a745'" class="color-preset" style="background:#28a745;">Green</button>
-                        <button type="button" onclick="document.getElementById('sym-var-action-color').value='#fd7e14'" class="color-preset" style="background:#fd7e14;">Orange</button>
-                        <button type="button" onclick="document.getElementById('sym-var-action-color').value='#667eea'" class="color-preset" style="background:#667eea;">Blue</button>
+                <!-- Simple mode -->
+                <div id="cb-simple-vars" style="display:none;">
+                    <div class="form-group">
+                        <label>Variable Estado Abierto (0/1):</label>
+                        <select id="cb-status-var-open" class="form-control"><option value="">-- seleccionar --</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Variable Estado Cerrado (0/1):</label>
+                        <select id="cb-status-var-close" class="form-control"><option value="">-- seleccionar --</option></select>
+                    </div>
+                </div>
+
+                <!-- Command -->
+                <div class="modal-section-title" style="margin-top:14px;">Salida / Escritura</div>
+                <div class="form-group">
+                    <label>Variable Comando (1=abrir, 2=cerrar):</label>
+                    <select id="cb-cmd-var" class="form-control"><option value="">-- seleccionar --</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Tiempo de pulso [s] (0 = permanente):</label>
+                    <input type="number" id="cb-cmd-time" class="form-control" min="0" max="100" value="0">
+                </div>
+
+                <!-- L/R -->
+                <div class="modal-section-title" style="margin-top:14px;">Local / Remoto</div>
+                <div class="form-group">
+                    <label>Variable L/R (1=Remoto bloquea operación):</label>
+                    <select id="cb-lr-var" class="form-control"><option value="">-- sin asignar --</option></select>
+                </div>
+
+                <!-- Close lock -->
+                <div class="modal-section-title" style="margin-top:14px;">Bloqueo de Cierre</div>
+                <div class="form-group cb-toggle-row">
+                    <label class="cb-toggle-label">
+                        <input type="checkbox" id="cb-lock-enabled" onchange="onCBLockChange()"> Habilitar bloqueo de cierre
+                    </label>
+                </div>
+                <div id="cb-lock-var-row" style="display:none;">
+                    <div class="form-group">
+                        <label>Variable de bloqueo (1=bloqueado):</label>
+                        <select id="cb-lock-var" class="form-control"><option value="">-- seleccionar --</option></select>
+                    </div>
+                </div>
+
+                <!-- SBO -->
+                <div class="modal-section-title" style="margin-top:14px;">SBO — Select Before Operate</div>
+                <div class="form-group cb-toggle-row">
+                    <label class="cb-toggle-label">
+                        <input type="checkbox" id="cb-sbo-enabled" onchange="onCBSBOChange()"> Habilitar SBO
+                    </label>
+                </div>
+                <div id="cb-sbo-config" style="display:none;">
+                    <div class="form-group">
+                        <label>Variable SBO_WRITE (escribe 1 al seleccionar — opcional):</label>
+                        <select id="cb-sbo-write-var" class="form-control"><option value="">-- sin asignar (opcional) --</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Time-Out SBO [s] (1-100):</label>
+                        <input type="number" id="cb-sbo-timeout" class="form-control" min="1" max="100" value="10">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ====== DISC CONFIG ====== -->
+            <div id="disc-config-section" style="display:none;">
+                <div class="modal-section-title" style="margin-top:14px;">🔌 Configuración Seccionador</div>
+
+                <!-- Status mode (disc has 3 options) -->
+                <div class="form-group">
+                    <label>Modo de estado:</label>
+                    <select id="disc-status-mode" class="form-control" onchange="onDiscStatusModeChange()">
+                        <option value="double">Doble (1 variable: 0=tránsito, 1=abierto, 2=cerrado, 3=error)</option>
+                        <option value="simple">Simple (2 variables: Abierto + Cerrado)</option>
+                        <option value="simplesimple">Simple-Simple (1 variable: 0=abierto, 1=cerrado)</option>
+                    </select>
+                </div>
+
+                <!-- Double mode -->
+                <div id="disc-double-vars">
+                    <div class="form-group">
+                        <label>Variable Status:</label>
+                        <select id="disc-status-var-double" class="form-control"><option value="">-- seleccionar --</option></select>
+                    </div>
+                </div>
+
+                <!-- Simple mode -->
+                <div id="disc-simple-vars" style="display:none;">
+                    <div class="form-group">
+                        <label>Variable Estado Abierto (0/1):</label>
+                        <select id="disc-status-var-open" class="form-control"><option value="">-- seleccionar --</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Variable Estado Cerrado (0/1):</label>
+                        <select id="disc-status-var-close" class="form-control"><option value="">-- seleccionar --</option></select>
+                    </div>
+                </div>
+
+                <!-- Simple-Simple mode -->
+                <div id="disc-simplesimple-vars" style="display:none;">
+                    <div class="form-group">
+                        <label>Variable Status (0=abierto, 1=cerrado):</label>
+                        <select id="disc-status-var-simplesimple" class="form-control"><option value="">-- seleccionar --</option></select>
+                    </div>
+                </div>
+
+                <!-- Command -->
+                <div class="modal-section-title" style="margin-top:14px;">Salida / Escritura</div>
+                <div class="form-group">
+                    <label>Variable Comando (1=abrir, 2=cerrar):</label>
+                    <select id="disc-cmd-var" class="form-control"><option value="">-- seleccionar --</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Tiempo de pulso [s] (0 = permanente):</label>
+                    <input type="number" id="disc-cmd-time" class="form-control" min="0" max="100" value="0">
+                </div>
+
+                <!-- L/R -->
+                <div class="modal-section-title" style="margin-top:14px;">Local / Remoto</div>
+                <div class="form-group">
+                    <label>Variable L/R (1=Remoto bloquea operación):</label>
+                    <select id="disc-lr-var" class="form-control"><option value="">-- sin asignar --</option></select>
+                </div>
+
+                <!-- Close lock -->
+                <div class="modal-section-title" style="margin-top:14px;">Bloqueo de Cierre</div>
+                <div class="form-group cb-toggle-row">
+                    <label class="cb-toggle-label">
+                        <input type="checkbox" id="disc-lock-enabled" onchange="onDiscLockChange()"> Habilitar bloqueo de cierre
+                    </label>
+                </div>
+                <div id="disc-lock-var-row" style="display:none;">
+                    <div class="form-group">
+                        <label>Variable de bloqueo (1=bloqueado):</label>
+                        <select id="disc-lock-var" class="form-control"><option value="">-- seleccionar --</option></select>
+                    </div>
+                </div>
+
+                <!-- SBO -->
+                <div class="modal-section-title" style="margin-top:14px;">SBO — Select Before Operate</div>
+                <div class="form-group cb-toggle-row">
+                    <label class="cb-toggle-label">
+                        <input type="checkbox" id="disc-sbo-enabled" onchange="onDiscSBOChange()"> Habilitar SBO
+                    </label>
+                </div>
+                <div id="disc-sbo-config" style="display:none;">
+                    <div class="form-group">
+                        <label>Variable SBO_WRITE (escribe 1 al seleccionar — opcional):</label>
+                        <select id="disc-sbo-write-var" class="form-control"><option value="">-- sin asignar (opcional) --</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Time-Out SBO [s] (1-100):</label>
+                        <input type="number" id="disc-sbo-timeout" class="form-control" min="1" max="100" value="10">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ====== IED CONFIG ====== -->
+            <div id="ied-config-section" style="display:none;">
+                <div class="modal-section-title" style="margin-top:14px;">🖥️ Configuración IED</div>
+
+                <div style="display:flex;gap:12px;">
+                    <div class="form-group" style="flex:2;">
+                        <label>Nombre (máx 15 chars):</label>
+                        <input type="text" id="ied-cfg-name" class="form-control" maxlength="15" placeholder="Nombre del IED">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Conexiones:</label>
+                        <input type="number" id="ied-cfg-connections" class="form-control" min="1" max="6" value="1">
+                    </div>
+                </div>
+
+                <!-- Analog signals -->
+                <div class="modal-section-title" style="margin-top:12px;">Señales Analógicas</div>
+                <div style="display:flex;gap:6px;margin-bottom:4px;padding:0 2px;">
+                    <span style="flex:2;font-size:10px;color:#4a6080;">Nombre</span>
+                    <span style="flex:3;font-size:10px;color:#4a6080;">Variable</span>
+                    <span style="flex:1;font-size:10px;color:#4a6080;">Unidad</span>
+                    <span style="flex:1;font-size:10px;color:#4a6080;"></span>
+                    <span style="width:36px;"></span>
+                </div>
+                <div id="ied-analog-rows" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;"></div>
+                <button class="btn btn-secondary" onclick="addIEDAnalogRow()" style="margin-top:8px;font-size:12px;padding:4px 12px;">+ Agregar señal analógica</button>
+
+                <!-- Digital signals -->
+                <div class="modal-section-title" style="margin-top:14px;">Señales Digitales</div>
+                <div style="display:flex;gap:6px;margin-bottom:4px;padding:0 2px;">
+                    <span style="flex:2;font-size:10px;color:#4a6080;">Nombre</span>
+                    <span style="flex:3;font-size:10px;color:#4a6080;">Variable</span>
+                    <span style="flex:1.5;font-size:10px;color:#4a6080;">Luz (=1)</span>
+                    <span style="flex:1.5;font-size:10px;color:#4a6080;">Luz (=0)</span>
+                    <span style="width:36px;"></span>
+                </div>
+                <div id="ied-digital-rows" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;"></div>
+                <button class="btn btn-secondary" onclick="addIEDDigitalRow()" style="margin-top:8px;font-size:12px;padding:4px 12px;">+ Agregar señal digital</button>
+            </div>
+
+
+            <!-- ====== TEXTO FIJO CONFIG ====== -->
+            <div id="txtlbl-config-section" style="display:none;">
+                <div class="modal-section-title" style="margin-top:14px;">✏️ Texto Fijo</div>
+                <div class="form-group">
+                    <label>Texto:</label>
+                    <textarea id="txtlbl-text" class="form-control" rows="3" placeholder="Escribí el texto..."></textarea>
+                </div>
+                <div class="form-group" style="display:flex;gap:12px;">
+                    <div style="flex:1;"><label>Color:</label>
+                        <input type="color" id="txtlbl-color" value="#FFFFFF" class="form-control" style="height:38px;padding:2px 4px;cursor:pointer;">
+                    </div>
+                    <div style="flex:1;"><label>Tamaño fuente:</label>
+                        <input type="number" id="txtlbl-fontsize" class="form-control" min="8" max="72" value="14">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== TEXTO VARIABLE CONFIG ====== -->
+            <div id="vartxt-config-section" style="display:none;">
+                <div class="modal-section-title" style="margin-top:14px;">📊 Texto Variable</div>
+                <div class="form-group">
+                    <label>Variable (Status):</label>
+                    <select id="vartxt-var-select" class="form-control"><option value="">-- seleccionar --</option></select>
+                </div>
+                <div class="form-group"><label>Tamaño fuente:</label>
+                    <input type="number" id="vartxt-fontsize" class="form-control" min="8" max="72" value="14">
+                </div>
+                <div class="modal-section-title" style="margin-top:10px;">Estados</div>
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                    <span style="color:#667eea;font-size:11px;font-weight:700;width:60px;flex-shrink:0;">Estado 0</span>
+                    <input type="text"  id="vartxt-st-text-0"  class="form-control" placeholder="Texto" style="flex:1;">
+                    <input type="color" id="vartxt-st-color-0" value="#EF4444" style="width:40px;height:36px;padding:2px;border-radius:6px;border:1px solid #1e3a5f;cursor:pointer;flex-shrink:0;">
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                    <span style="color:#667eea;font-size:11px;font-weight:700;width:60px;flex-shrink:0;">Estado 1</span>
+                    <input type="text"  id="vartxt-st-text-1"  class="form-control" placeholder="Texto" style="flex:1;">
+                    <input type="color" id="vartxt-st-color-1" value="#F59E0B" style="width:40px;height:36px;padding:2px;border-radius:6px;border:1px solid #1e3a5f;cursor:pointer;flex-shrink:0;">
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                    <span style="color:#667eea;font-size:11px;font-weight:700;width:60px;flex-shrink:0;">Estado 2</span>
+                    <input type="text"  id="vartxt-st-text-2"  class="form-control" placeholder="Texto" style="flex:1;">
+                    <input type="color" id="vartxt-st-color-2" value="#10B981" style="width:40px;height:36px;padding:2px;border-radius:6px;border:1px solid #1e3a5f;cursor:pointer;flex-shrink:0;">
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                    <span style="color:#667eea;font-size:11px;font-weight:700;width:60px;flex-shrink:0;">Estado 3</span>
+                    <input type="text"  id="vartxt-st-text-3"  class="form-control" placeholder="Texto" style="flex:1;">
+                    <input type="color" id="vartxt-st-color-3" value="#38BDF8" style="width:40px;height:36px;padding:2px;border-radius:6px;border:1px solid #1e3a5f;cursor:pointer;flex-shrink:0;">
+                </div>
+            </div>
+
+            <!-- ====== SET POINT CONFIG ====== -->
+            <div id="setpt-config-section" style="display:none;">
+                <div class="modal-section-title" style="margin-top:14px;">🎯 Set Point</div>
+                <div class="form-group">
+                    <label>Variable Command:</label>
+                    <select id="setpt-var-select" class="form-control"><option value="">-- seleccionar --</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Descripción:</label>
+                    <input type="text" id="setpt-description" class="form-control" placeholder="Ej: Ajuste de temperatura" maxlength="15">
+                </div>
+            </div>
+
+            <!-- ====== ANALOG CONFIG ====== -->
+            <div id="anlg-config-section" style="display:none;">
+                <div class="modal-section-title" style="margin-top:14px;">📈 Analog</div>
+                <div class="form-group">
+                    <label>Variable Analog:</label>
+                    <select id="anlg-var-select" class="form-control"><option value="">-- seleccionar --</option></select>
+                </div>
+            </div>
+
+            <!-- ====== ALARM CONFIG ====== -->
+            <div id="alarm-config-section" style="display:none;">
+                <div class="modal-section-title" style="margin-top:14px;">🚨 Alarma</div>
+                <div class="form-group">
+                    <label>Tipo de variable:</label>
+                    <select id="alarm-var-type" class="form-control" onchange="onAlarmVarTypeChange()">
+                        <option value="analog">Analog</option>
+                        <option value="status">Status</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Variable:</label>
+                    <select id="alarm-var-name" class="form-control"><option value="">-- seleccionar --</option></select>
+                </div>
+                <div id="alarm-thresholds">
+                    <div class="modal-section-title" style="margin-top:10px;">Umbrales (valor ≤ umbral)</div>
+                    <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                        <span style="color:#10B981;font-size:12px;font-weight:700;width:70px;flex-shrink:0;">🟢 Verde ≤</span>
+                        <input type="number" id="alarm-green-max"  class="form-control" value="10" step="any">
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                        <span style="color:#F59E0B;font-size:12px;font-weight:700;width:70px;flex-shrink:0;">🟡 Amarillo ≤</span>
+                        <input type="number" id="alarm-yellow-max" class="form-control" value="20" step="any">
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                        <span style="color:#EF4444;font-size:12px;font-weight:700;width:70px;flex-shrink:0;">🔴 Rojo ≤</span>
+                        <input type="number" id="alarm-red-max"    class="form-control" value="30" step="any">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ====== GENERIC RULE (hidden for CB) ====== -->
+            <div id="generic-rule-section">
+                <div class="form-group">
+                    <label>Status (display label):</label>
+                    <select id="sym-prop-status" class="form-control">
+                        <option value="">-- none --</option>
+                        <option value="OPEN">OPEN</option>
+                        <option value="CLOSED">CLOSED</option>
+                        <option value="TRIPPED">TRIPPED</option>
+                        <option value="FAULT">FAULT</option>
+                    </select>
+                </div>
+                <div class="modal-section-title" style="margin-top:18px;">
+                    Automation Rule
+                    <span style="font-size:11px;font-weight:400;color:#aaa;">(optional)</span>
+                </div>
+                <div class="form-group">
+                    <label>Variable Type:</label>
+                    <select id="sym-var-type" class="form-control">
+                        <option value="">-- none --</option>
+                        <option value="status">Status</option>
+                        <option value="analog">Analog</option>
+                        <option value="command">Command</option>
+                    </select>
+                </div>
+                <div class="form-group rule-row" id="rule-var-row" style="display:none;">
+                    <label>Variable:</label>
+                    <select id="sym-var-name" class="form-control"></select>
+                </div>
+                <div class="rule-block" id="rule-block" style="display:none;">
+                    <div class="rule-current-val">Current value: <strong id="rule-current-val-display">—</strong></div>
+                    <div class="form-group" style="margin-top:12px;">
+                        <label>Condition:</label>
+                        <select id="sym-var-condition" class="form-control">
+                            <option value="">-- select --</option>
+                            <option value="eq">= Equal to</option>
+                            <option value="gt">&gt; Greater than</option>
+                            <option value="lt">&lt; Less than</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="rule-threshold-row" style="display:none;">
+                        <label>Threshold value:</label>
+                        <input type="text" id="sym-var-threshold" class="form-control" placeholder="e.g., 1 or 100">
+                    </div>
+                    <div class="form-group" id="rule-action-row" style="display:none;">
+                        <label>Action — Change symbol color to:</label>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="color" id="sym-var-action-color" value="#e74c3c" style="width:42px;height:34px;border:2px solid #e0e0e0;border-radius:6px;cursor:pointer;padding:2px;">
+                            <button type="button" onclick="document.getElementById('sym-var-action-color').value='#e74c3c'" class="color-preset" style="background:#e74c3c;">Red</button>
+                            <button type="button" onclick="document.getElementById('sym-var-action-color').value='#28a745'" class="color-preset" style="background:#28a745;">Green</button>
+                            <button type="button" onclick="document.getElementById('sym-var-action-color').value='#fd7e14'" class="color-preset" style="background:#fd7e14;">Orange</button>
+                            <button type="button" onclick="document.getElementById('sym-var-action-color').value='#667eea'" class="color-preset" style="background:#667eea;">Blue</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -642,7 +998,256 @@
     </div>
 </div>
 
+<!-- ===== MODAL: CIRCUIT BREAKER OPERATION ===== -->
+<div class="modal-overlay" id="modal-cb-operate">
+    <div class="modal-card modal-sm cb-operate-card">
+        <div class="modal-header">
+            <h2 id="cb-operate-title">⚡ Interruptor</h2>
+            <button class="modal-close" onclick="closeCBOperateModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <!-- State display -->
+            <div class="cb-state-display" id="cb-state-display">
+                <div class="cb-state-row">
+                    <span class="cb-state-label">Estado:</span>
+                    <span class="cb-state-value" id="cb-state-value">—</span>
+                </div>
+                <div class="cb-state-row">
+                    <span class="cb-state-label">Local / Remoto:</span>
+                    <span class="cb-state-value" id="cb-lr-value">—</span>
+                </div>
+            </div>
+
+            <!-- SBO Step 1: SELECT -->
+            <div id="cb-sbo-select-section" style="display:none;">
+                <div class="cb-sbo-hint">Modo SBO activo — debe SELECCIONAR antes de operar</div>
+                <div class="cb-sbo-timer" id="cb-sbo-timer-display" style="display:none;"></div>
+                <button class="btn btn-warning cb-btn-full" id="btn-cb-select" onclick="cbDoSelect()">
+                    ▶ SELECCIONAR
+                </button>
+            </div>
+
+            <!-- Operation buttons -->
+            <div id="cb-action-buttons">
+                <div class="cb-btn-group">
+                    <button class="btn cb-btn-open"   id="btn-cb-open"   onclick="cbDoOpen()">⬡ ABRIR</button>
+                    <button class="btn cb-btn-close"  id="btn-cb-close"  onclick="cbDoClose()">⬟ CERRAR</button>
+                </div>
+            </div>
+
+            <!-- Blocked / Remote message -->
+            <div class="cb-block-msg" id="cb-block-msg" style="display:none;"></div>
+        </div>
+        <div class="modal-footer" style="justify-content:space-between;">
+            <button class="btn cb-btn-config" id="btn-cb-config-from-operate" onclick="openCBConfigFromOperate()">⚙ Configurar</button>
+            <button class="btn btn-secondary" onclick="closeCBOperateModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<!-- ========== HISTORY CHART MODAL ========== -->
+<div class="modal-overlay" id="history-modal">
+    <div class="modal-card modal-history">
+        <div class="modal-header">
+            <h3 id="history-modal-title">📈 Historial de variable</h3>
+            <button class="modal-close" onclick="closeHistoryModal()">✕</button>
+        </div>
+        <div class="modal-body" style="padding-bottom:0;">
+            <!-- Tracking type toggle -->
+            <div class="hm-toolbar">
+                <div class="hm-toggle-group">
+                    <span class="hm-label">Datos:</span>
+                    <button class="btn hm-track-btn active" data-track="history"    onclick="setHistoryTrackingType('history')">📋 Historial</button>
+                    <button class="btn hm-track-btn"        data-track="max"        onclick="setHistoryTrackingType('max')">📊 Máximos</button>
+                </div>
+                <div class="hm-toggle-group">
+                    <span class="hm-label">Gráfico:</span>
+                    <button class="btn hm-chart-btn active" data-chart="line"  onclick="setHistoryChartType('line')">〰️ Lineal</button>
+                    <button class="btn hm-chart-btn"        data-chart="bar"   onclick="setHistoryChartType('bar')">📊 Barras</button>
+                    <button class="btn hm-chart-btn"        data-chart="pie"   onclick="setHistoryChartType('pie')">🥧 Torta</button>
+                </div>
+            </div>
+            <!-- Chart area -->
+            <div class="hm-chart-container">
+                <div id="history-chart-loading" style="display:none;" class="hm-state-msg">⏳ Cargando datos...</div>
+                <div id="history-chart-empty"   style="display:none;" class="hm-state-msg">📭 No hay datos de historial para esta variable.<br><small>Activá el guardado desde el menú ⋯ para empezar a registrar valores.</small></div>
+                <canvas id="history-chart-canvas"></canvas>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeHistoryModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
 <script src="/js/app.js"></script>
 <script src="/js/oscillography.js"></script>
+
+<!-- ============================================================
+     TEXT LABEL EDIT MODAL
+     ============================================================ -->
+<div class="modal-overlay" id="modal-text-edit">
+    <div class="modal-box" style="max-width:380px;">
+        <div class="modal-header">
+            <h2>✏️ Editar Texto</h2>
+            <button class="modal-close" onclick="closeModal('modal-text-edit')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Texto:</label>
+                <textarea id="text-edit-content" class="form-control" rows="3" placeholder="Escribí el texto aquí..."></textarea>
+                <small style="color:#4a6080;font-size:10px;">Usá Enter para múltiples líneas</small>
+            </div>
+            <div class="form-group" style="display:flex;gap:12px;align-items:center;">
+                <div style="flex:1;">
+                    <label>Color:</label>
+                    <input type="color" id="text-edit-color" value="#FFFFFF" class="form-control" style="height:38px;padding:2px 4px;cursor:pointer;">
+                </div>
+                <div style="flex:1;">
+                    <label>Tamaño fuente:</label>
+                    <input type="number" id="text-edit-fontsize" class="form-control" min="8" max="72" value="14">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="saveTextEdit()">✓ Guardar</button>
+            <button class="btn btn-secondary" onclick="closeModal('modal-text-edit')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     VARIABLE TEXT LABEL EDIT MODAL
+     ============================================================ -->
+<div class="modal-overlay" id="modal-vartext-edit">
+    <div class="modal-box" style="max-width:460px;">
+        <div class="modal-header">
+            <h2>📊 Texto Variable</h2>
+            <button class="modal-close" onclick="closeModal('modal-vartext-edit')">✕</button>
+        </div>
+        <div class="modal-body">
+
+            <!-- Variable signal -->
+            <div class="form-group">
+                <label>Variable (Status):</label>
+                <select id="vartext-var-select" class="form-control">
+                    <option value="">-- seleccionar --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tamaño fuente:</label>
+                <input type="number" id="vartext-fontsize" class="form-control" min="8" max="72" value="14">
+            </div>
+
+            <div class="modal-section-title" style="margin-top:14px;">Estados</div>
+
+            <!-- State 0 -->
+            <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <span style="color:#667eea;font-size:11px;font-weight:700;width:60px;flex-shrink:0;">Estado 0</span>
+                <input type="text"  id="vartext-text-0"  class="form-control" placeholder="Texto cuando valor = 0" style="flex:1;">
+                <input type="color" id="vartext-color-0" value="#EF4444" style="width:40px;height:36px;padding:2px;border-radius:6px;border:1px solid #1e3a5f;cursor:pointer;flex-shrink:0;">
+            </div>
+            <!-- State 1 -->
+            <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <span style="color:#667eea;font-size:11px;font-weight:700;width:60px;flex-shrink:0;">Estado 1</span>
+                <input type="text"  id="vartext-text-1"  class="form-control" placeholder="Texto cuando valor = 1" style="flex:1;">
+                <input type="color" id="vartext-color-1" value="#F59E0B" style="width:40px;height:36px;padding:2px;border-radius:6px;border:1px solid #1e3a5f;cursor:pointer;flex-shrink:0;">
+            </div>
+            <!-- State 2 -->
+            <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <span style="color:#667eea;font-size:11px;font-weight:700;width:60px;flex-shrink:0;">Estado 2</span>
+                <input type="text"  id="vartext-text-2"  class="form-control" placeholder="Texto cuando valor = 2" style="flex:1;">
+                <input type="color" id="vartext-color-2" value="#10B981" style="width:40px;height:36px;padding:2px;border-radius:6px;border:1px solid #1e3a5f;cursor:pointer;flex-shrink:0;">
+            </div>
+            <!-- State 3 -->
+            <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+                <span style="color:#667eea;font-size:11px;font-weight:700;width:60px;flex-shrink:0;">Estado 3</span>
+                <input type="text"  id="vartext-text-3"  class="form-control" placeholder="Texto cuando valor = 3" style="flex:1;">
+                <input type="color" id="vartext-color-3" value="#38BDF8" style="width:40px;height:36px;padding:2px;border-radius:6px;border:1px solid #1e3a5f;cursor:pointer;flex-shrink:0;">
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="saveVarTextEdit()">✓ Guardar</button>
+            <button class="btn btn-secondary" onclick="closeModal('modal-vartext-edit')">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     IED OPERATE MODAL
+     ============================================================ -->
+<div class="modal-overlay" id="modal-ied-operate">
+    <div class="modal-box" style="max-width:500px;max-height:80vh;display:flex;flex-direction:column;">
+        <div class="modal-header">
+            <h2>🖥️ <span id="ied-modal-name">IED</span></h2>
+            <button class="modal-close" onclick="closeModal('modal-ied-operate')">✕</button>
+        </div>
+        <div class="modal-body" style="overflow-y:auto;flex:1;">
+
+            <!-- Analog signals table -->
+            <div class="modal-section-title" style="margin-bottom:8px;">Señales Analógicas</div>
+            <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+                <thead>
+                    <tr style="background:#0d1a26;">
+                        <th style="padding:6px 10px;text-align:left;color:#667eea;font-size:11px;font-weight:600;">Nombre</th>
+                        <th style="padding:6px 10px;text-align:right;color:#667eea;font-size:11px;font-weight:600;">Valor</th>
+                        <th style="padding:6px 10px;text-align:left;color:#667eea;font-size:11px;font-weight:600;">Unidad</th>
+                    </tr>
+                </thead>
+                <tbody id="ied-operate-analog-body"></tbody>
+            </table>
+
+            <!-- Digital signals table -->
+            <div class="modal-section-title" style="margin-bottom:8px;">Señales Digitales</div>
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#0d1a26;">
+                        <th style="padding:6px 10px;text-align:left;color:#667eea;font-size:11px;font-weight:600;">Nombre</th>
+                        <th style="padding:6px 10px;text-align:center;color:#667eea;font-size:11px;font-weight:600;">Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="ied-operate-digital-body"></tbody>
+            </table>
+
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modal-ied-operate')">Cerrar</button>
+            <button class="btn btn-secondary operator-hide" onclick="closeModal('modal-ied-operate'); openSymbolPropsModal(iedOperateSymId);">⚙ Configurar</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- SET POINT OPERATE MODAL -->
+<div class="modal-overlay" id="modal-setpt-operate">
+    <div class="modal-box" style="max-width:360px;">
+        <div class="modal-header">
+            <h2>🎯 <span id="setpt-modal-desc">Set Point</span></h2>
+            <button class="modal-close" onclick="closeModal('modal-setpt-operate')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="font-size:11px;color:#4a6080;margin-bottom:12px;">Variable: <span id="setpt-modal-varname" style="color:#667eea;"></span></div>
+            <div class="form-group">
+                <label>Valor:</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <button class="btn" onclick="setptStep(-1)" style="background:#1e3a5f;color:#c8d6e5;font-size:18px;padding:4px 14px;flex-shrink:0;">−</button>
+                    <input type="number" id="setpt-modal-input" class="form-control" style="text-align:center;font-size:18px;font-weight:700;">
+                    <button class="btn" onclick="setptStep(1)"  style="background:#1e3a5f;color:#c8d6e5;font-size:18px;padding:4px 14px;flex-shrink:0;">+</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="setptSave()">✓ Aplicar</button>
+            <button class="btn btn-secondary" onclick="closeModal('modal-setpt-operate')">Cancelar</button>
+            <button class="btn btn-secondary operator-hide" id="setpt-modal-cfg-btn" onclick="closeModal('modal-setpt-operate'); openSymbolPropsModal(setptOperateSymId);">⚙ Configurar</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

@@ -1,0 +1,15 @@
+# Build output
+target/
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+src/.DS_Store
+src/main/.DS_Store
+
+# Runtime database files
+data/*.db
+data/*.trace.db

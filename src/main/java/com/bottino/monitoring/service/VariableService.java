@@ -12,6 +12,12 @@ import com.bottino.monitoring.service.schneider.SchneiderSyncService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +26,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class VariableService {
@@ -161,12 +169,12 @@ public class VariableService {
                break;
          }
 
-         // Sync each variable with Schneider
-         //            if (username != null) {
-         //                schneiderSyncService.syncSingleVariable(name, type, username);
-         //            }
-
          count++;
+      }
+
+      // Sync all saved variables with Schneider in one pass
+      if (count > 0 && username != null) {
+         schneiderSyncService.syncAllVariablesForType(type, username);
       }
 
       return count;
@@ -179,5 +187,72 @@ public class VariableService {
 
          return csvParser.getRecords();
       }
+   }
+
+   // Excel (.xlsx) Import — reads Status, Analog and Command sheets in one go.
+   // Sheet layout: row 0 = group header, row 1 = column headers, data from row 2.
+   // Column A = NAME, column B = DESCRIPTION. Other sheets (Bin, SetPoint) are ignored.
+   public Map<String, Integer> importAllVariablesFromExcel(MultipartFile file, String username) throws Exception {
+      Map<String, Integer> counts = new HashMap<>();
+      counts.put("status", 0);
+      counts.put("analog", 0);
+      counts.put("command", 0);
+
+      DataFormatter fmt = new DataFormatter();
+
+      try (Workbook wb = new XSSFWorkbook(file.getInputStream())) {
+         String[] sheetNames = { "Status", "Analog", "Command" };
+
+         for (String sheetName : sheetNames) {
+            Sheet sheet = wb.getSheet(sheetName);
+            if (sheet == null) continue;
+
+            String type = sheetName.toLowerCase();
+            int c = 0;
+
+            for (int i = 2; i <= sheet.getLastRowNum(); i++) {
+               Row row = sheet.getRow(i);
+               if (row == null) continue;
+
+               String name = readCell(row.getCell(0), fmt);
+               if (name == null || name.isBlank()) continue;
+
+               String description = readCell(row.getCell(1), fmt);
+               String value = ""; // filled later by Schneider sync
+
+               switch (type) {
+                  case "status":
+                     statusRepository.save(new StatusVariable(null, name, value, description));
+                     break;
+                  case "analog":
+                     analogRepository.save(new AnalogVariable(null, name, value, description));
+                     break;
+                  case "command":
+                     commandRepository.save(new CommandVariable(null, name, value, description));
+                     break;
+               }
+               c++;
+            }
+
+            counts.put(type, c);
+         }
+      }
+
+      // Sync each imported type with Schneider
+      if (username != null) {
+         for (String sheetName : new String[] { "status", "analog", "command" }) {
+            if (counts.getOrDefault(sheetName, 0) > 0) {
+               schneiderSyncService.syncAllVariablesForType(sheetName, username);
+            }
+         }
+      }
+
+      return counts;
+   }
+
+   private String readCell(Cell cell, DataFormatter fmt) {
+      if (cell == null) return "";
+      String v = fmt.formatCellValue(cell);
+      return v == null ? "" : v.trim();
    }
 }

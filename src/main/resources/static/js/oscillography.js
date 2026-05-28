@@ -480,7 +480,8 @@ var OscRender = (function () {
             rows.push({ y:y, h:h, mid:y+h/2 });
             if (ch.visible) y += h + CH_H.pad;
         });
-        return { rows:rows, totalH:y };
+        // Add bottom padding so the last channel is never clipped
+        return { rows:rows, totalH:y + 24 };
     }
 
     function tToX(tMs, st, W) {
@@ -818,8 +819,28 @@ var OscilloController = (function () {
     function resizeCanvas() {
         var c = document.getElementById('osc-chart-area');
         if(!c||!canvas) return;
-        if(canvas.width!==c.clientWidth||canvas.height!==c.clientHeight){
-            canvas.width=c.clientWidth; canvas.height=c.clientHeight; dirty=true;
+
+        // Width always matches the container
+        var newW = c.clientWidth;
+
+        // Height = full virtual stack of all channels (so nothing is clipped)
+        // We calculate this the same way buildLayout does, independently of container height
+        var newH = 10; // top padding (matches buildLayout y=10 start)
+        if (st.channels && st.channels.length) {
+            st.channels.forEach(function(ch) {
+                if (!ch.visible) return;
+                var h = ch.type === 'digital' ? 32 : 110;
+                newH += h + 6; // CH_H values
+            });
+        }
+        newH += 24; // bottom padding (matches buildLayout + 24)
+        // Minimum: fill the container so it doesn't look empty with few channels
+        newH = Math.max(newH, c.clientHeight);
+
+        if (canvas.width !== newW || canvas.height !== newH) {
+            canvas.width  = newW;
+            canvas.height = newH;
+            dirty = true;
         }
     }
 
