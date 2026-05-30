@@ -494,6 +494,7 @@ function startVariablePolling() {
         await loadAllVariablesCache();
         renderTable(currentTab, allVariables[currentTab]);
         evaluateAllSymbolRules();
+        varTextLabels.forEach(function(l) { updateVarTextElement(l); });
         checkRTUAlert();
     }, 1000);
 }
@@ -902,6 +903,21 @@ function showMsgEl(el, text, success) {
 var panels         = {};
 var currentPanelId = null;
 var panelDataReady = false;
+var panelDirty     = false;
+
+function markPanelDirty() {
+    if (!panelDataReady) return;
+    panelDirty = true;
+    updateSaveButton();
+    renderPanelList();
+}
+
+function updateSaveButton() {
+    var btn = document.getElementById('btn-save-panel');
+    if (!btn) return;
+    btn.disabled     = !panelDirty;
+    btn.style.opacity = panelDirty ? '' : '0.45';
+}
 
 async function loadPanelListFromDB() {
     if (!currentUsername) return;
@@ -932,7 +948,7 @@ function renderPanelList() {
         var div = document.createElement('div');
         div.className = 'panel-list-item' + (id === currentPanelId ? ' active' : '');
         div.innerHTML =
-            '<span class="panel-list-name">' + escapeHtml(p.name) + '</span>' +
+            '<span class="panel-list-name">' + escapeHtml(p.name) + (panelDirty && id === currentPanelId ? ' *' : '') + '</span>' +
             (!isOperador() ? '<button class="panel-list-del" data-id="' + id + '" title="Eliminar panel">✕</button>' : '');
         div.addEventListener('click', function(e) {
             if (e.target.classList.contains('panel-list-del')) {
@@ -989,7 +1005,9 @@ function loadPanel(id) {
     varTextLabels.forEach(function(lbl) { createVarTextElement(lbl); });
     document.getElementById('current-panel-name').textContent = data.name;
     panelDataReady = true;
+    panelDirty     = false;
     renderPanelList();
+    updateSaveButton();
     evaluateAllSymbolRules();
 }
 
@@ -1006,6 +1024,9 @@ async function saveCurrentPanel() {
         var r       = await fetch('/api/panels/' + currentPanelId, { method: 'PUT', headers: headers, body: body });
         if (!r.ok) throw new Error();
         showToast('Panel "' + p.name + '" guardado correctamente', 'success');
+        panelDirty = false;
+        updateSaveButton();
+        renderPanelList();
     } catch(err) { showToast('Error al guardar el panel en la base de datos', 'error'); }
 }
 
@@ -1063,6 +1084,7 @@ var connections   = [];
 var selectedId    = null;
 var connectFrom   = null;
 var dragState     = null;
+var wasDragged    = false;
 var panelInited   = false;
 var svgEl, symLayer, connLayer;
 
@@ -1190,6 +1212,7 @@ function addSymbol(type, x, y) {
     var sym = { id: id, type: type, x: x, y: y, props: props };
     canvasSymbols.push(sym);
     createSymbolElement(sym);
+    markPanelDirty();
 }
 
 function createSymbolElement(sym) {
@@ -1358,6 +1381,7 @@ function handleConnectClick(symId) {
         connections.push(conn);
         setConnectHighlight(connectFrom, false); connectFrom = null;
         createConnectionElement(conn); refreshAllVisuals();
+        markPanelDirty();
     }
 }
 
@@ -1368,6 +1392,7 @@ function setConnectHighlight(symId, on) {
 
 function onCanvasMouseMove(e) {
     if (!dragState) return;
+    wasDragged = true;
     var rect = svgEl.getBoundingClientRect();
     // Check if dragging a text label
     var lbl = textLabels.find(function(l) { return l.id === dragState.symbolId; });
@@ -1392,8 +1417,8 @@ function onCanvasMouseMove(e) {
     updateSymbolDrawing(sym);
     connections.filter(function(c) { return c.fromId === sym.id || c.toId === sym.id; }).forEach(function(c) { updateConnectionDrawing(c); });
 }
-function onCanvasMouseUp()    { dragState = null; }
-function onCanvasMouseLeave() { dragState = null; }
+function onCanvasMouseUp()    { if (wasDragged) markPanelDirty(); wasDragged = false; dragState = null; }
+function onCanvasMouseLeave() { if (wasDragged) markPanelDirty(); wasDragged = false; dragState = null; }
 
 
 // ============================================================
@@ -1405,6 +1430,7 @@ function addTextSymbol(x, y) {
     var id = 'txt_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
     var lbl = { id: id, x: x, y: y, text: 'Texto', color: '#FFFFFF', fontSize: 14 };
     textLabels.push(lbl);
+    markPanelDirty();
     createTextElement(lbl);
     // Immediately open edit modal
     setPanelTool('select');
@@ -1483,6 +1509,7 @@ function saveTextEdit() {
     lbl.color    = document.getElementById('text-edit-color').value;
     lbl.fontSize = parseInt(document.getElementById('text-edit-fontsize').value) || 14;
     updateTextElement(lbl);
+    markPanelDirty();
     closeModal('modal-text-edit');
     showToast('Texto actualizado', 'success');
 }
@@ -1495,6 +1522,7 @@ function deleteTextLabel(id) {
     textLabels.splice(idx, 1);
     if (selectedId === id) selectedId = null;
     refreshAllVisuals();
+    markPanelDirty();
 }
 
 
@@ -1517,6 +1545,7 @@ function addVarTextSymbol(x, y) {
         ]
     };
     varTextLabels.push(lbl);
+    markPanelDirty();
     createVarTextElement(lbl);
     setPanelTool('select');
     openVarTextEditModal(id);
@@ -1613,6 +1642,7 @@ function saveVarTextEdit() {
         };
     }
     updateVarTextElement(lbl);
+    markPanelDirty();
     closeModal('modal-vartext-edit');
     showToast('Texto variable guardado', 'success');
 }
@@ -1625,6 +1655,7 @@ function deleteVarTextLabel(id) {
     varTextLabels.splice(idx, 1);
     if (selectedId === id) selectedId = null;
     refreshAllVisuals();
+    markPanelDirty();
 }
 
 
@@ -1823,6 +1854,7 @@ async function deleteSelected() {
         if (ci !== -1) { var ce2 = document.getElementById(selectedId); if (ce2) ce2.remove(); connections.splice(ci, 1); }
     }
     selectedId = null;
+    markPanelDirty();
 }
 
 async function clearCanvas() {
@@ -1830,6 +1862,7 @@ async function clearCanvas() {
     if (!ok) return;
     canvasSymbols = []; connections = []; selectedId = null; connectFrom = null;
     symLayer.innerHTML = ''; connLayer.innerHTML = '';
+    markPanelDirty();
 }
 
 // ============================================================
@@ -2105,6 +2138,7 @@ function saveSymbolProps() {
     updateSymbolDrawing(sym);
     evaluateAllSymbolRules();
     showToast('Configuración del símbolo guardada', 'success');
+    markPanelDirty();
 }
 
 // ============================================================
