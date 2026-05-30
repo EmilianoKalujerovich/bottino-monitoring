@@ -338,6 +338,8 @@ function switchSidebarTab(name) {
     if (name === 'panel') {
         document.getElementById('view-panel').classList.add('active');
         setTimeout(resizePanelCanvas, 50);
+        evaluateAllSymbolRules();
+        refreshAllVisuals();
     } else if (name === 'oscilo') {
         document.getElementById('view-oscilo').classList.add('active');
     } else {
