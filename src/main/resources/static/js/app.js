@@ -495,7 +495,7 @@ function startVariablePolling() {
         renderTable(currentTab, allVariables[currentTab]);
         evaluateAllSymbolRules();
         checkRTUAlert();
-    }, 10000);
+    }, 1000);
 }
 
 function checkRTUAlert() {
