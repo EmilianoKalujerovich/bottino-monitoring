@@ -341,7 +341,6 @@ function switchSidebarTab(name) {
         loadAllVariablesCache().then(function() {
             evaluateAllSymbolRules();
             refreshAllVisuals();
-            console.log('[tab-switch] refreshed panel, analog=[' + (allVariables.analog || []).map(function(v){ return v.name+'='+v.value; }).join(',') + ']');
         });
     } else if (name === 'oscilo') {
         document.getElementById('view-oscilo').classList.add('active');
@@ -503,8 +502,6 @@ function startVariablePolling() {
             canvasSymbols.forEach(function(s) { updateSymbolDrawing(s); });
             varTextLabels.forEach(function(l) { updateVarTextElement(l); });
             checkRTUAlert();
-            var analogVals = (allVariables.analog || []).map(function(v) { return v.name + '=' + v.value; });
-            console.log('[poll] symbols=' + canvasSymbols.length + ' analog=[' + analogVals.join(',') + ']');
         } catch(e) { console.error('[poll error]', e); }
     }, 1000);
 }
