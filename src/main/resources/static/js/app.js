@@ -494,6 +494,7 @@ function startVariablePolling() {
         await loadAllVariablesCache();
         renderTable(currentTab, allVariables[currentTab]);
         evaluateAllSymbolRules();
+        canvasSymbols.forEach(function(s) { updateSymbolDrawing(s); });
         varTextLabels.forEach(function(l) { updateVarTextElement(l); });
         checkRTUAlert();
     }, 1000);
