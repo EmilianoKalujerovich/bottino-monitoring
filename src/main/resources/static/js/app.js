@@ -477,7 +477,7 @@ async function loadAllVariablesCache() {
         var type = ['status','analog','command'][i];
         try {
             var headers = currentUsername ? { 'X-Username': currentUsername } : {};
-            var r = await fetch('/api/variables/' + type, { headers: headers });
+            var r = await fetch('/api/variables/' + type, { headers: headers, cache: 'no-store' });
             allVariables[type] = r.ok ? await r.json() : [];
         } catch(err) { allVariables[type] = []; }
     }
