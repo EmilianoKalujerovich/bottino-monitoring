@@ -105,8 +105,13 @@ function showPrompt(message, defaultValue, title) {
 // ============================================================
 //  BOOTSTRAP
 // ============================================================
-initEventListeners();
-checkSession();
+// NOTE: the actual initEventListeners()/checkSession() calls run at the
+// bottom of this file, once every var/function below (e.g. ANSI_SYMBOLS)
+// has been defined. Calling checkSession() here — before ANSI_SYMBOLS is
+// assigned further down — throws when a session already exists in
+// localStorage, because showMainScreen() -> buildSymbolPalette() reads
+// ANSI_SYMBOLS while it's still undefined, aborting the rest of the
+// bootstrap (empty palette/panel list until logout+login).
 
 function initEventListeners() {
     loginForm.addEventListener('submit', handleLogin);
@@ -1070,16 +1075,25 @@ var ANSI_SYMBOLS = [
     { id:'disc',  label:'DS — Con tope',    short:'DS',  color:'#F59E0B', draw: function(w,h,p,c){ return drawDiscWithStop(w,h,p,c,null); } },
     { id:'disc2', label:'DS — Sin tope',    short:'DS',  color:'#F59E0B', draw: function(w,h,p,c){ return drawDiscNoStop(w,h,p,c,null); } },
     { id:'xfmr',  label:'Transformer',     short:'TF',  color:'#38BDF8', draw: drawTransformer    },
+    { id:'xfmr3', label:'Trafo 3 Arroll.', short:'TF3', color:'#38BDF8', draw: drawTransformer3W  },
+    { id:'ti',    label:'TI — Corriente',  short:'TI',  color:'#F59E0B', draw: drawCT             },
+    { id:'vt',    label:'TV — Tensión',    short:'TV',  color:'#F59E0B', draw: drawVT             },
+    { id:'cuba',  label:'Cuba Trafo',      short:'CUB', color:'#38BDF8', draw: drawCubaTrafo      },
     { id:'motor', label:'Motor',           short:'M',   color:'#38BDF8', draw: drawMotor          },
     { id:'gen',   label:'Generator',       short:'G',   color:'#10B981', draw: drawGenerator      },
+    { id:'reactor',label:'Reactor Neutro', short:'RX',  color:'#A78BFA', draw: drawReactorNeutro  },
+    { id:'ground',label:'Tierra',          short:'GND', color:'#A78BFA', draw: drawGroundSym      },
+    { id:'celda', label:'Celda Extraíble', short:'CEL', color:'#F59E0B', draw: drawCelda          },
     { id:'cap',   label:'Capacitor Bank',  short:'CAP', color:'#F59E0B', draw: drawCapacitor      },
     { id:'load',  label:'Load',            short:'LD',  color:'#A78BFA', draw: drawLoad           },
     { id:'bus',   label:'Bus Bar',         short:'BUS', color:'#F59E0B', draw: drawBusBar         },
     { id:'fuse',  label:'Fuse',            short:'FU',  color:'#EF4444', draw: drawFuse           },
     { id:'relay', label:'Relay',           short:'RY',  color:'#38BDF8', draw: drawRelay          },
     { id:'ied',   label:'IED',             short:'IED', color:'#A78BFA', draw: drawIED            },
+    { id:'inarrow',label:'Entrada',        short:'IN',  color:'#38BDF8', draw: drawInputArrow     },
+    { id:'outarrow',label:'Salida',        short:'OUT', color:'#38BDF8', draw: drawOutputArrow    },
     { id:'txtlbl',label:'Texto Fijo',        short:'T',   color:'#667eea', draw: drawTextLblPreview  },
-    { id:'vartxt',label:'Texto Variable',    short:'TV',  color:'#10B981', draw: drawVarTxtPreview   },
+    { id:'vartxt',label:'Texto Variable',    short:'VAR', color:'#10B981', draw: drawVarTxtPreview   },
     { id:'setpt', label:'Set Point',         short:'SP',  color:'#38BDF8', draw: drawSetPoint        },
     { id:'anlg',  label:'Analog',            short:'AN',  color:'#F59E0B', draw: drawAnalogSym       },
     { id:'alarm', label:'Alarma',            short:'AL',  color:'#EF4444', draw: drawAlarmSym        },
@@ -1163,8 +1177,7 @@ function addSymbol(type, x, y) {
     var props = { label: def ? def.short + (canvasSymbols.length + 1) : 'X', status: '', notes: '', color: '', rule: null, ruleActiveColor: null };
     if (type === 'cb' || type === 'cb2' || type === 'cb3') {
         props.cbConfig = {
-            statusMode: 'double',
-            statusVarDouble: '', statusVarOpen: '', statusVarClose: '',
+            statusVar: '', openVar: '', closeVar: '',
             cmdVar: '', cmdTime: 0,
             lrVar: '',
             lockEnabled: false, lockVar: '',
@@ -1207,8 +1220,7 @@ function addSymbol(type, x, y) {
     }
     if (type === 'disc' || type === 'disc2') {
         props.discConfig = {
-            statusMode: 'double',
-            statusVarDouble: '', statusVarOpen: '', statusVarClose: '', statusVarSimpleSimple: '',
+            statusVar: '', openVar: '', closeVar: '',
             cmdVar: '', cmdTime: 0,
             lrVar: '',
             lockEnabled: false, lockVar: '',
@@ -1909,37 +1921,42 @@ function openSymbolPropsModal(id) {
 
     if (isCB) {
         var cfg = sym.props.cbConfig || {};
-        populateCBVarSelect('cb-status-var-double', 'status', cfg.statusVarDouble || '');
-        populateCBVarSelect('cb-status-var-open',   'status', cfg.statusVarOpen   || '');
-        populateCBVarSelect('cb-status-var-close',  'status', cfg.statusVarClose  || '');
-        populateCBVarSelect('cb-lr-var',            'status', cfg.lrVar           || '', true);
-        populateCBVarSelect('cb-lock-var',          'status', cfg.lockVar         || '');
-        populateCBVarSelect('cb-cmd-var',           'command', cfg.cmdVar         || '');
-        populateCBVarSelect('cb-sbo-write-var',     'command', cfg.sboWriteVar    || '', true);
-        document.getElementById('cb-status-mode').value    = cfg.statusMode || 'double';
+        // Convert old format if needed
+        var cbStatusVar = cfg.statusVar !== undefined ? cfg.statusVar : (cfg.statusMode === 'double' ? (cfg.statusVarDouble || '') : '');
+        var cbOpenVar   = cfg.openVar   !== undefined ? cfg.openVar   : (cfg.statusMode === 'simple'  ? (cfg.statusVarOpen   || '') : '');
+        var cbCloseVar  = cfg.closeVar  !== undefined ? cfg.closeVar  : (cfg.statusMode === 'simple'  ? (cfg.statusVarClose  || '') : (cfg.statusMode === 'simplesimple' ? (cfg.statusVarSimpleSimple || '') : ''));
+        populateCBVarSelect('cb-status-var', 'status',  cbStatusVar);
+        populateCBVarSelect('cb-open-var',   'status',  cbOpenVar);
+        populateCBVarSelect('cb-close-var',  'status',  cbCloseVar);
+        populateCBVarSelect('cb-lr-var',     'status',  cfg.lrVar    || '', true);
+        populateCBVarSelect('cb-lock-var',   'status',  cfg.lockVar  || '');
+        populateCBVarSelect('cb-cmd-var',    'command', cfg.cmdVar   || '');
+        populateCBVarSelect('cb-sbo-write-var', 'command', cfg.sboWriteVar || '', true);
         document.getElementById('cb-cmd-time').value       = cfg.cmdTime    !== undefined ? cfg.cmdTime : 0;
         document.getElementById('cb-lock-enabled').checked = !!cfg.lockEnabled;
         document.getElementById('cb-sbo-enabled').checked  = !!cfg.sboEnabled;
         document.getElementById('cb-sbo-timeout').value    = cfg.sboTimeout || 10;
-        onCBStatusModeChange();
+        onCBVarChange();
         onCBLockChange();
         onCBSBOChange();
     } else if (isDisc) {
         var dcfg = sym.props.discConfig || {};
-        populateCBVarSelect('disc-status-var-double',       'status', dcfg.statusVarDouble      || '');
-        populateCBVarSelect('disc-status-var-open',         'status', dcfg.statusVarOpen        || '');
-        populateCBVarSelect('disc-status-var-close',        'status', dcfg.statusVarClose       || '');
-        populateCBVarSelect('disc-status-var-simplesimple', 'status', dcfg.statusVarSimpleSimple|| '');
-        populateCBVarSelect('disc-lr-var',                  'status', dcfg.lrVar               || '', true);
-        populateCBVarSelect('disc-lock-var',                'status', dcfg.lockVar             || '');
-        populateCBVarSelect('disc-cmd-var',                 'command', dcfg.cmdVar             || '');
-        populateCBVarSelect('disc-sbo-write-var',           'command', dcfg.sboWriteVar        || '', true);
-        document.getElementById('disc-status-mode').value    = dcfg.statusMode || 'double';
+        // Convert old format if needed
+        var discStatusVar = dcfg.statusVar !== undefined ? dcfg.statusVar : (dcfg.statusMode === 'double'       ? (dcfg.statusVarDouble       || '') : '');
+        var discOpenVar   = dcfg.openVar   !== undefined ? dcfg.openVar   : (dcfg.statusMode === 'simple'       ? (dcfg.statusVarOpen         || '') : '');
+        var discCloseVar  = dcfg.closeVar  !== undefined ? dcfg.closeVar  : (dcfg.statusMode === 'simple'       ? (dcfg.statusVarClose        || '') : (dcfg.statusMode === 'simplesimple' ? (dcfg.statusVarSimpleSimple || '') : ''));
+        populateCBVarSelect('disc-status-var', 'status',  discStatusVar);
+        populateCBVarSelect('disc-open-var',   'status',  discOpenVar);
+        populateCBVarSelect('disc-close-var',  'status',  discCloseVar);
+        populateCBVarSelect('disc-lr-var',     'status',  dcfg.lrVar    || '', true);
+        populateCBVarSelect('disc-lock-var',   'status',  dcfg.lockVar  || '');
+        populateCBVarSelect('disc-cmd-var',    'command', dcfg.cmdVar   || '');
+        populateCBVarSelect('disc-sbo-write-var', 'command', dcfg.sboWriteVar || '', true);
         document.getElementById('disc-cmd-time').value       = dcfg.cmdTime    !== undefined ? dcfg.cmdTime : 0;
         document.getElementById('disc-lock-enabled').checked = !!dcfg.lockEnabled;
         document.getElementById('disc-sbo-enabled').checked  = !!dcfg.sboEnabled;
         document.getElementById('disc-sbo-timeout').value    = dcfg.sboTimeout || 10;
-        onDiscStatusModeChange();
+        onDiscVarChange();
         onDiscLockChange();
         onDiscSBOChange();
     } else if (isIED) {
@@ -2040,10 +2057,24 @@ function populateCBVarSelect(elId, type, selected, addBlank) {
     }).join('');
 }
 
-function onCBStatusModeChange() {
-    var mode = document.getElementById('cb-status-mode').value;
-    document.getElementById('cb-double-vars').style.display = (mode === 'double') ? '' : 'none';
-    document.getElementById('cb-simple-vars').style.display = (mode === 'simple') ? '' : 'none';
+function inferStateModeLabel(statusVar, openVar, closeVar) {
+    if (statusVar)             return '0=Tránsito | 1=Abierto | 2=Cerrado | 3=Error  (variable entera)';
+    if (openVar && closeVar)   return '0/0=Tránsito | 1/0=Abierto | 0/1=Cerrado | 1/1=Error  (doble binario)';
+    if (closeVar)              return '0=Abierto | 1=Cerrado  (binario cierre)';
+    if (openVar)               return '1=Abierto | 0=Cerrado  (binario apertura)';
+    return '— sin configurar —';
+}
+function onCBVarChange() {
+    var sv = document.getElementById('cb-status-var').value;
+    var ov = document.getElementById('cb-open-var').value;
+    var cv = document.getElementById('cb-close-var').value;
+    document.getElementById('cb-mode-indicator').textContent = inferStateModeLabel(sv, ov, cv);
+}
+function onDiscVarChange() {
+    var sv = document.getElementById('disc-status-var').value;
+    var ov = document.getElementById('disc-open-var').value;
+    var cv = document.getElementById('disc-close-var').value;
+    document.getElementById('disc-mode-indicator').textContent = inferStateModeLabel(sv, ov, cv);
 }
 function onCBLockChange() {
     var on = document.getElementById('cb-lock-enabled').checked;
@@ -2062,10 +2093,9 @@ function saveSymbolProps() {
 
     if (sym.type === 'cb' || sym.type === 'cb2' || sym.type === 'cb3') {
         var cfg = sym.props.cbConfig || {};
-        cfg.statusMode     = document.getElementById('cb-status-mode').value;
-        cfg.statusVarDouble= document.getElementById('cb-status-var-double').value;
-        cfg.statusVarOpen  = document.getElementById('cb-status-var-open').value;
-        cfg.statusVarClose = document.getElementById('cb-status-var-close').value;
+        cfg.statusVar  = document.getElementById('cb-status-var').value;
+        cfg.openVar    = document.getElementById('cb-open-var').value;
+        cfg.closeVar   = document.getElementById('cb-close-var').value;
         cfg.cmdVar         = document.getElementById('cb-cmd-var').value;
         cfg.cmdTime        = parseInt(document.getElementById('cb-cmd-time').value) || 0;
         cfg.lrVar          = document.getElementById('cb-lr-var').value;
@@ -2115,11 +2145,9 @@ function saveSymbolProps() {
         };
     } else if (sym.type === 'disc' || sym.type === 'disc2') {
         var dcfg = sym.props.discConfig || {};
-        dcfg.statusMode            = document.getElementById('disc-status-mode').value;
-        dcfg.statusVarDouble       = document.getElementById('disc-status-var-double').value;
-        dcfg.statusVarOpen         = document.getElementById('disc-status-var-open').value;
-        dcfg.statusVarClose        = document.getElementById('disc-status-var-close').value;
-        dcfg.statusVarSimpleSimple = document.getElementById('disc-status-var-simplesimple').value;
+        dcfg.statusVar  = document.getElementById('disc-status-var').value;
+        dcfg.openVar    = document.getElementById('disc-open-var').value;
+        dcfg.closeVar   = document.getElementById('disc-close-var').value;
         dcfg.cmdVar                = document.getElementById('disc-cmd-var').value;
         dcfg.cmdTime               = parseInt(document.getElementById('disc-cmd-time').value) || 0;
         dcfg.lrVar                 = document.getElementById('disc-lr-var').value;
@@ -2211,13 +2239,15 @@ function drawTransformer(w, h, preview, c) {
     return preview ? symSVG(w, h, inner) : inner;
 }
 function drawMotor(w, h, preview, c) {
+    // Idem Generador pero con "M" — A1 Superior Único (conexión arriba, no al costado).
     c = c || '#38BDF8';
-    var inner = '<circle cx="25" cy="20" r="16" fill="#1C2235" stroke="' + c + '" stroke-width="2" class="sym-body"/><text x="25" y="25" font-size="13" font-weight="bold" fill="' + c + '" text-anchor="middle" font-family="sans-serif">M</text><line x1="0" y1="20" x2="9" y2="20" stroke="' + c + '" stroke-width="2"/>';
+    var inner = '<circle cx="25" cy="24" r="14" fill="#1C2235" stroke="' + c + '" stroke-width="2" class="sym-body"/><text x="25" y="29" font-size="13" font-weight="bold" fill="' + c + '" text-anchor="middle" font-family="sans-serif">M</text><line x1="25" y1="0" x2="25" y2="10" stroke="' + c + '" stroke-width="2"/>';
     return preview ? symSVG(w, h, inner) : inner;
 }
 function drawGenerator(w, h, preview, c) {
+    // A1 Superior Único (conexión arriba, no al costado).
     c = c || '#10B981';
-    var inner = '<circle cx="25" cy="20" r="16" fill="#1C2235" stroke="' + c + '" stroke-width="2" class="sym-body"/><text x="25" y="25" font-size="13" font-weight="bold" fill="' + c + '" text-anchor="middle" font-family="sans-serif">G</text><line x1="0" y1="20" x2="9" y2="20" stroke="' + c + '" stroke-width="2"/>';
+    var inner = '<circle cx="25" cy="24" r="14" fill="#1C2235" stroke="' + c + '" stroke-width="2" class="sym-body"/><text x="25" y="29" font-size="13" font-weight="bold" fill="' + c + '" text-anchor="middle" font-family="sans-serif">G</text><line x1="25" y1="0" x2="25" y2="10" stroke="' + c + '" stroke-width="2"/>';
     return preview ? symSVG(w, h, inner) : inner;
 }
 function drawCapacitor(w, h, preview, c) {
@@ -2231,8 +2261,90 @@ function drawLoad(w, h, preview, c) {
     return preview ? symSVG(w, h, inner) : inner;
 }
 function drawBusBar(w, h, preview, c) {
+    // Barra: línea gruesa igual que una conexión, no una caja/rect.
     c = c || '#F59E0B';
-    var inner = '<rect class="sym-body" x="2" y="15" width="46" height="10" rx="2" fill="' + c + '" stroke="' + c + '" stroke-width="1"/>';
+    var inner = '<line class="sym-body" x1="2" y1="20" x2="48" y2="20" stroke="' + c + '" stroke-width="7" stroke-linecap="round"/>';
+    return preview ? symSVG(w, h, inner) : inner;
+}
+function drawInputArrow(w, h, preview, c) {
+    // Entrada (Input): triángulo hueco, punto de conexión abajo.
+    c = c || '#38BDF8';
+    var inner = '<polygon class="sym-body" points="17,8 33,8 25,24" fill="#1C2235" stroke="' + c + '" stroke-width="2"/>' +
+                '<line x1="25" y1="24" x2="25" y2="40" stroke="' + c + '" stroke-width="2"/>' +
+                '<circle cx="25" cy="40" r="2" fill="' + c + '"/>';
+    return preview ? symSVG(w, h, inner) : inner;
+}
+function drawOutputArrow(w, h, preview, c) {
+    // Salida (Output): triángulo relleno, punto de conexión arriba.
+    c = c || '#38BDF8';
+    var inner = '<line x1="25" y1="0" x2="25" y2="16" stroke="' + c + '" stroke-width="2"/>' +
+                '<polygon class="sym-body" points="17,16 33,16 25,32" fill="' + c + '" stroke="' + c + '" stroke-width="2"/>' +
+                '<circle cx="25" cy="0" r="2" fill="' + c + '"/>';
+    return preview ? symSVG(w, h, inner) : inner;
+}
+function drawCubaTrafo(w, h, preview, c) {
+    // Cuba-Trafo: accesorio "{" que se ubica al lado del transformador. Punto de conexión abajo.
+    c = c || '#38BDF8';
+    var inner = '<path class="sym-body" d="M 32 6 C 18 6 18 18 12 20 C 18 22 18 34 32 34" fill="none" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/>' +
+                '<circle cx="12" cy="20" r="2" fill="' + c + '"/>';
+    return preview ? symSVG(w, h, inner) : inner;
+}
+function drawTransformer3W(w, h, preview, c) {
+    // Trafo 3 arrollamientos solapados en trébol: A1 (AT, arriba), A2 (MT, izq), A3 (BT, der), N1 (neutro, abajo).
+    c = c || '#38BDF8';
+    var inner = '<circle cx="25" cy="14" r="9" fill="#1C2235" stroke="' + c + '" stroke-width="2" class="sym-body"/>' +
+                '<circle cx="18" cy="26" r="9" fill="#1C2235" stroke="' + c + '" stroke-width="2"/>' +
+                '<circle cx="32" cy="26" r="9" fill="#1C2235" stroke="' + c + '" stroke-width="2"/>' +
+                '<line x1="25" y1="0" x2="25" y2="6" stroke="' + c + '" stroke-width="2"/>' +
+                '<line x1="14" y1="34" x2="9" y2="40" stroke="' + c + '" stroke-width="2"/>' +
+                '<line x1="36" y1="34" x2="41" y2="40" stroke="' + c + '" stroke-width="2"/>' +
+                '<line x1="25" y1="33" x2="25" y2="40" stroke="' + c + '" stroke-width="1.5" stroke-dasharray="2 2"/>';
+    return preview ? symSVG(w, h, inner) : inner;
+}
+function drawCT(w, h, preview, c) {
+    // TI (Transformador de Corriente): intercalado en serie, A1 a A2.
+    c = c || '#F59E0B';
+    var inner = '<line x1="0" y1="20" x2="15" y2="20" stroke="' + c + '" stroke-width="2"/>' +
+                '<line x1="35" y1="20" x2="50" y2="20" stroke="' + c + '" stroke-width="2"/>' +
+                '<circle cx="25" cy="20" r="10" fill="#1C2235" stroke="' + c + '" stroke-width="2" class="sym-body"/>' +
+                '<line x1="15" y1="20" x2="35" y2="20" stroke="' + c + '" stroke-width="2"/>' +
+                '<path d="M 20 14 A 6 6 0 0 1 30 14" fill="none" stroke="' + c + '" stroke-width="1.5"/>';
+    return preview ? symSVG(w, h, inner) : inner;
+}
+function drawVT(w, h, preview, c) {
+    // TV (Transformador de Tensión): derivado a barra, A1 único arriba, secundario aterrizado.
+    c = c || '#F59E0B';
+    var inner = '<line x1="25" y1="0" x2="25" y2="8" stroke="' + c + '" stroke-width="2"/>' +
+                '<circle cx="25" cy="15" r="7" fill="#1C2235" stroke="' + c + '" stroke-width="2" class="sym-body"/>' +
+                '<circle cx="25" cy="24" r="7" fill="#1C2235" stroke="' + c + '" stroke-width="2"/>' +
+                '<line x1="25" y1="31" x2="25" y2="34" stroke="' + c + '" stroke-width="1.5"/>' +
+                '<line x1="17" y1="34" x2="33" y2="34" stroke="' + c + '" stroke-width="1.5"/>' +
+                '<line x1="20" y1="37" x2="30" y2="37" stroke="' + c + '" stroke-width="1.5"/>' +
+                '<line x1="23" y1="40" x2="27" y2="40" stroke="' + c + '" stroke-width="1.5"/>';
+    return preview ? symSVG(w, h, inner) : inner;
+}
+function drawReactorNeutro(w, h, preview, c) {
+    // Reactor de Neutro: A1 entrada (al neutro), A2 salida (a tierra directa) — bobina en zigzag.
+    c = c || '#A78BFA';
+    var inner = '<line x1="25" y1="0" x2="25" y2="8" stroke="' + c + '" stroke-width="2"/>' +
+                '<path d="M 25 8 C 15 11, 35 15, 25 18 C 15 21, 35 25, 25 28 C 15 31, 35 35, 25 38" fill="none" stroke="' + c + '" stroke-width="2" class="sym-body"/>' +
+                '<line x1="25" y1="38" x2="25" y2="40" stroke="' + c + '" stroke-width="2"/>';
+    return preview ? symSVG(w, h, inner) : inner;
+}
+function drawGroundSym(w, h, preview, c) {
+    // Tierra: símbolo normalizado de puesta a tierra.
+    c = c || '#A78BFA';
+    var inner = '<line x1="25" y1="0" x2="25" y2="20" stroke="' + c + '" stroke-width="2" class="sym-body"/>' +
+                '<line x1="12" y1="20" x2="38" y2="20" stroke="' + c + '" stroke-width="2.5"/>' +
+                '<line x1="17" y1="27" x2="33" y2="27" stroke="' + c + '" stroke-width="2"/>' +
+                '<line x1="22" y1="34" x2="28" y2="34" stroke="' + c + '" stroke-width="1.5"/>';
+    return preview ? symSVG(w, h, inner) : inner;
+}
+function drawCelda(w, h, preview, c) {
+    // Celda Extraíble: A1 Superior Único.
+    c = c || '#F59E0B';
+    var inner = '<line x1="25" y1="0" x2="25" y2="8" stroke="' + c + '" stroke-width="2"/>' +
+                '<rect class="sym-body" x="9" y="8" width="32" height="26" rx="2" fill="#1C2235" stroke="' + c + '" stroke-width="2" stroke-dasharray="4 3"/>';
     return preview ? symSVG(w, h, inner) : inner;
 }
 function drawFuse(w, h, preview, c) {
@@ -2581,37 +2693,41 @@ function drawDiscWithStop(w, h, preview, c, discState) {
     c = c || '#F59E0B';
     var inner;
     if (discState === 'open') {
+        // Terminales A1 (arriba, 25,0) y A2 (abajo, 25,40) alineados como el interruptor;
+        // la cuchilla gira hacia el tope pero ambos puntos de conexión quedan en el eje vertical.
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="14" stroke="' + c + '" stroke-width="2.5"/>' +
-            '<line x1="17" y1="14" x2="33" y2="14" stroke="' + c + '" stroke-width="2.5"/>' +
-            '<line x1="25" y1="14" x2="14" y2="30" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/>' +
-            '<line x1="14" y1="30" x2="14" y2="44" stroke="' + c + '" stroke-width="2.5"/>';
+            '<line x1="25" y1="0"  x2="25" y2="12" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<line x1="17" y1="12" x2="33" y2="12" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<line x1="25" y1="12" x2="15" y2="24" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/>' +
+            '<line x1="25" y1="28" x2="25" y2="40" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<circle cx="25" cy="28" r="2" fill="' + c + '"/>';
     } else if (discState === 'closed') {
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="44" stroke="' + c + '" stroke-width="2.5"/>' +
-            '<line x1="17" y1="20" x2="33" y2="20" stroke="' + c + '" stroke-width="2.5"/>';
+            '<line x1="25" y1="0"  x2="25" y2="40" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<line x1="17" y1="12" x2="33" y2="12" stroke="' + c + '" stroke-width="2.5"/>';
     } else if (discState === 'error') {
         var ec = '#EF4444';
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="14" stroke="' + ec + '" stroke-width="2.5"/>' +
-            '<line x1="17" y1="14" x2="33" y2="14" stroke="' + ec + '" stroke-width="2.5"/>' +
-            '<line x1="25" y1="14" x2="14" y2="30" stroke="' + ec + '" stroke-width="2" stroke-dasharray="3 2"/>' +
-            '<line x1="14" y1="30" x2="14" y2="44" stroke="' + ec + '" stroke-width="2.5"/>' +
-            '<line x1="18" y1="18" x2="28" y2="28" stroke="' + ec + '" stroke-width="1.5" stroke-linecap="round"/>' +
-            '<line x1="28" y1="18" x2="18" y2="28" stroke="' + ec + '" stroke-width="1.5" stroke-linecap="round"/>';
+            '<line x1="25" y1="0"  x2="25" y2="12" stroke="' + ec + '" stroke-width="2.5"/>' +
+            '<line x1="17" y1="12" x2="33" y2="12" stroke="' + ec + '" stroke-width="2.5"/>' +
+            '<line x1="25" y1="12" x2="15" y2="24" stroke="' + ec + '" stroke-width="2" stroke-dasharray="3 2"/>' +
+            '<line x1="25" y1="28" x2="25" y2="40" stroke="' + ec + '" stroke-width="2.5"/>' +
+            '<line x1="20" y1="16" x2="30" y2="26" stroke="' + ec + '" stroke-width="1.5" stroke-linecap="round"/>' +
+            '<line x1="30" y1="16" x2="20" y2="26" stroke="' + ec + '" stroke-width="1.5" stroke-linecap="round"/>';
     } else if (discState === 'transit') {
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="14" stroke="#888" stroke-width="2.5"/>' +
-            '<line x1="17" y1="14" x2="33" y2="14" stroke="#888" stroke-width="2.5"/>' +
-            '<line x1="25" y1="14" x2="14" y2="30" stroke="#888" stroke-width="2" stroke-dasharray="3 2"/>' +
-            '<line x1="14" y1="30" x2="14" y2="44" stroke="#888" stroke-width="2.5"/>';
+            '<line x1="25" y1="0"  x2="25" y2="12" stroke="#888" stroke-width="2.5"/>' +
+            '<line x1="17" y1="12" x2="33" y2="12" stroke="#888" stroke-width="2.5"/>' +
+            '<line x1="25" y1="12" x2="15" y2="24" stroke="#888" stroke-width="2" stroke-dasharray="3 2"/>' +
+            '<line x1="25" y1="28" x2="25" y2="40" stroke="#888" stroke-width="2.5"/>';
     } else {
         // Generic/palette — show open
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="14" stroke="' + c + '" stroke-width="2.5"/>' +
-            '<line x1="17" y1="14" x2="33" y2="14" stroke="' + c + '" stroke-width="2.5"/>' +
-            '<line x1="25" y1="14" x2="14" y2="30" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/>' +
-            '<line x1="14" y1="30" x2="14" y2="44" stroke="' + c + '" stroke-width="2.5"/>';
+            '<line x1="25" y1="0"  x2="25" y2="12" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<line x1="17" y1="12" x2="33" y2="12" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<line x1="25" y1="12" x2="15" y2="24" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/>' +
+            '<line x1="25" y1="28" x2="25" y2="40" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<circle cx="25" cy="28" r="2" fill="' + c + '"/>';
     }
     return preview ? symSVG(w, h, inner) : inner;
 }
@@ -2623,32 +2739,35 @@ function drawDiscNoStop(w, h, preview, c, discState) {
     c = c || '#F59E0B';
     var inner;
     if (discState === 'open') {
+        // Idem interruptor: A1 (25,0) y A2 (25,40) alineados; la cuchilla se abre entre ambos.
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="16" stroke="' + c + '" stroke-width="2.5"/>' +
-            '<line x1="25" y1="16" x2="14" y2="30" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/>' +
-            '<line x1="14" y1="30" x2="14" y2="44" stroke="' + c + '" stroke-width="2.5"/>';
+            '<line x1="25" y1="0"  x2="25" y2="14" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<line x1="25" y1="14" x2="15" y2="26" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/>' +
+            '<line x1="25" y1="28" x2="25" y2="40" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<circle cx="25" cy="28" r="2" fill="' + c + '"/>';
     } else if (discState === 'closed') {
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="44" stroke="' + c + '" stroke-width="2.5"/>';
+            '<line x1="25" y1="0"  x2="25" y2="40" stroke="' + c + '" stroke-width="2.5"/>';
     } else if (discState === 'error') {
         var ec = '#EF4444';
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="16" stroke="' + ec + '" stroke-width="2.5"/>' +
-            '<line x1="25" y1="16" x2="14" y2="30" stroke="' + ec + '" stroke-width="2" stroke-dasharray="3 2"/>' +
-            '<line x1="14" y1="30" x2="14" y2="44" stroke="' + ec + '" stroke-width="2.5"/>' +
-            '<line x1="18" y1="18" x2="28" y2="28" stroke="' + ec + '" stroke-width="1.5" stroke-linecap="round"/>' +
-            '<line x1="28" y1="18" x2="18" y2="28" stroke="' + ec + '" stroke-width="1.5" stroke-linecap="round"/>';
+            '<line x1="25" y1="0"  x2="25" y2="14" stroke="' + ec + '" stroke-width="2.5"/>' +
+            '<line x1="25" y1="14" x2="15" y2="26" stroke="' + ec + '" stroke-width="2" stroke-dasharray="3 2"/>' +
+            '<line x1="25" y1="28" x2="25" y2="40" stroke="' + ec + '" stroke-width="2.5"/>' +
+            '<line x1="20" y1="18" x2="30" y2="28" stroke="' + ec + '" stroke-width="1.5" stroke-linecap="round"/>' +
+            '<line x1="30" y1="18" x2="20" y2="28" stroke="' + ec + '" stroke-width="1.5" stroke-linecap="round"/>';
     } else if (discState === 'transit') {
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="16" stroke="#888" stroke-width="2.5"/>' +
-            '<line x1="25" y1="16" x2="14" y2="30" stroke="#888" stroke-width="2" stroke-dasharray="3 2"/>' +
-            '<line x1="14" y1="30" x2="14" y2="44" stroke="#888" stroke-width="2.5"/>';
+            '<line x1="25" y1="0"  x2="25" y2="14" stroke="#888" stroke-width="2.5"/>' +
+            '<line x1="25" y1="14" x2="15" y2="26" stroke="#888" stroke-width="2" stroke-dasharray="3 2"/>' +
+            '<line x1="25" y1="28" x2="25" y2="40" stroke="#888" stroke-width="2.5"/>';
     } else {
         // Generic/palette — show open
         inner =
-            '<line x1="25" y1="0"  x2="25" y2="16" stroke="' + c + '" stroke-width="2.5"/>' +
-            '<line x1="25" y1="16" x2="14" y2="30" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/>' +
-            '<line x1="14" y1="30" x2="14" y2="44" stroke="' + c + '" stroke-width="2.5"/>';
+            '<line x1="25" y1="0"  x2="25" y2="14" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<line x1="25" y1="14" x2="15" y2="26" stroke="' + c + '" stroke-width="2.5" stroke-linecap="round"/>' +
+            '<line x1="25" y1="28" x2="25" y2="40" stroke="' + c + '" stroke-width="2.5"/>' +
+            '<circle cx="25" cy="28" r="2" fill="' + c + '"/>';
     }
     return preview ? symSVG(w, h, inner) : inner;
 }
@@ -2659,39 +2778,64 @@ function drawDiscNoStop(w, h, preview, c, discState) {
 function resolveDiscState(sym) {
     var cfg = sym.props.discConfig;
     if (!cfg) return null;
-    if (cfg.statusMode === 'double') {
-        var v = parseInt(getVarValue('status', cfg.statusVarDouble) || 'x');
-        if (isNaN(v)) return null;
-        if (v === 0) return 'transit';
-        if (v === 1) return 'open';
-        if (v === 2) return 'closed';
-        if (v === 3) return 'error';
-        return null;
-    } else if (cfg.statusMode === 'simple') {
-        var o = getVarValue('status', cfg.statusVarOpen);
-        var c = getVarValue('status', cfg.statusVarClose);
-        var ov = o !== null ? parseInt(o) : null;
-        var cv = c !== null ? parseInt(c) : null;
-        if (ov === 1 && cv === 1) return 'error';
-        if (ov === 1 && cv === 0) return 'open';
-        if (ov === 0 && cv === 1) return 'closed';
-        if (ov === 0 && cv === 0) return 'transit';
-        return null;
-    } else {
-        // simple-simple: one variable, 0=open 1=closed
+    // Backward compat: old format had statusMode field
+    if (cfg.statusMode) {
+        if (cfg.statusMode === 'double') {
+            var v = parseInt(getVarValue('status', cfg.statusVarDouble) || 'x');
+            if (isNaN(v)) return null;
+            if (v === 0) return 'transit';
+            if (v === 1) return 'open';
+            if (v === 2) return 'closed';
+            if (v === 3) return 'error';
+            return null;
+        }
+        if (cfg.statusMode === 'simple') {
+            var o = getVarValue('status', cfg.statusVarOpen);
+            var c = getVarValue('status', cfg.statusVarClose);
+            var ov = o !== null ? parseInt(o) : null;
+            var cv = c !== null ? parseInt(c) : null;
+            if (ov === 1 && cv === 1) return 'error';
+            if (ov === 1 && cv === 0) return 'open';
+            if (ov === 0 && cv === 1) return 'closed';
+            if (ov === 0 && cv === 0) return 'transit';
+            return null;
+        }
+        // simplesimple
         var ss = getVarValue('status', cfg.statusVarSimpleSimple);
         if (ss === null) return null;
         return parseInt(ss) === 0 ? 'open' : 'closed';
     }
+    // New format: auto-infer from which vars are set
+    var statusVar = cfg.statusVar || '';
+    var openVar   = cfg.openVar   || '';
+    var closeVar  = cfg.closeVar  || '';
+    if (statusVar) {
+        var v2 = parseInt(getVarValue('status', statusVar) || 'x');
+        if (isNaN(v2)) return null;
+        if (v2 === 0) return 'transit';
+        if (v2 === 1) return 'open';
+        if (v2 === 2) return 'closed';
+        if (v2 === 3) return 'error';
+        return null;
+    }
+    if (openVar && closeVar) {
+        var ov2 = parseInt(getVarValue('status', openVar)  || '0');
+        var cv2 = parseInt(getVarValue('status', closeVar) || '0');
+        if (ov2 === 1 && cv2 === 1) return 'error';
+        if (ov2 === 1 && cv2 === 0) return 'open';
+        if (ov2 === 0 && cv2 === 1) return 'closed';
+        return 'transit';
+    }
+    if (closeVar) {
+        return parseInt(getVarValue('status', closeVar) || '0') === 1 ? 'closed' : 'open';
+    }
+    if (openVar) {
+        return parseInt(getVarValue('status', openVar) || '0') === 1 ? 'open' : 'closed';
+    }
+    return null;
 }
 
 // Disc config modal helpers (mirror CB helpers)
-function onDiscStatusModeChange() {
-    var mode = document.getElementById('disc-status-mode').value;
-    document.getElementById('disc-double-vars').style.display        = (mode === 'double')       ? '' : 'none';
-    document.getElementById('disc-simple-vars').style.display        = (mode === 'simple')       ? '' : 'none';
-    document.getElementById('disc-simplesimple-vars').style.display  = (mode === 'simplesimple') ? '' : 'none';
-}
 function onDiscLockChange() {
     var on = document.getElementById('disc-lock-enabled').checked;
     document.getElementById('disc-lock-var-row').style.display = on ? '' : 'none';
@@ -2747,17 +2891,17 @@ function drawDisconnectorFull(w, h, preview, c, discState) {
 function resolveCBState(sym) {
     var cfg = sym.props.cbConfig;
     if (!cfg) return null;
-    if (cfg.statusMode === 'double') {
-        var varObj = getVarValue('status', cfg.statusVarDouble);
-        if (varObj === null) return null;
-        var v = parseInt(varObj);
-        if (v === 0) return 'transit';
-        if (v === 1) return 'open';
-        if (v === 2) return 'closed';
-        if (v === 3) return 'error';
-        return null;
-    } else {
-        // simple: two separate variables
+    // Backward compat: old format had statusMode field
+    if (cfg.statusMode) {
+        if (cfg.statusMode === 'double') {
+            var v = parseInt(getVarValue('status', cfg.statusVarDouble) || 'x');
+            if (isNaN(v)) return null;
+            if (v === 0) return 'transit';
+            if (v === 1) return 'open';
+            if (v === 2) return 'closed';
+            if (v === 3) return 'error';
+            return null;
+        }
         var openObj  = getVarValue('status', cfg.statusVarOpen);
         var closeObj = getVarValue('status', cfg.statusVarClose);
         var o = openObj  !== null ? parseInt(openObj)  : null;
@@ -2768,6 +2912,34 @@ function resolveCBState(sym) {
         if (o === 0 && c === 0) return 'transit';
         return null;
     }
+    // New format: auto-infer from which vars are set
+    var statusVar = cfg.statusVar || '';
+    var openVar   = cfg.openVar   || '';
+    var closeVar  = cfg.closeVar  || '';
+    if (statusVar) {
+        var v2 = parseInt(getVarValue('status', statusVar) || 'x');
+        if (isNaN(v2)) return null;
+        if (v2 === 0) return 'transit';
+        if (v2 === 1) return 'open';
+        if (v2 === 2) return 'closed';
+        if (v2 === 3) return 'error';
+        return null;
+    }
+    if (openVar && closeVar) {
+        var ov = parseInt(getVarValue('status', openVar)  || '0');
+        var cv = parseInt(getVarValue('status', closeVar) || '0');
+        if (ov === 1 && cv === 1) return 'error';
+        if (ov === 1 && cv === 0) return 'open';
+        if (ov === 0 && cv === 1) return 'closed';
+        return 'transit';
+    }
+    if (closeVar) {
+        return parseInt(getVarValue('status', closeVar) || '0') === 1 ? 'closed' : 'open';
+    }
+    if (openVar) {
+        return parseInt(getVarValue('status', openVar) || '0') === 1 ? 'open' : 'closed';
+    }
+    return null;
 }
 
 function getVarValue(type, name) {
@@ -3026,3 +3198,9 @@ function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 function escapeHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ============================================================
+//  BOOTSTRAP (actual entry point — see note near the top of the file)
+// ============================================================
+initEventListeners();
+checkSession();

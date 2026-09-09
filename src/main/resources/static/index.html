@@ -614,33 +614,23 @@
             <div id="cb-config-section" style="display:none;">
                 <div class="modal-section-title" style="margin-top:14px;">⚡ Configuración Interruptor</div>
 
-                <!-- Status mode -->
+                <!-- Status variables (auto-mode) -->
+                <div class="modal-section-title" style="margin-top:14px;">📊 Variables de Estado</div>
                 <div class="form-group">
-                    <label>Modo de estado:</label>
-                    <select id="cb-status-mode" class="form-control" onchange="onCBStatusModeChange()">
-                        <option value="double">Doble (1 variable: 0=tránsito, 1=abierto, 2=cerrado, 3=error)</option>
-                        <option value="simple">Simple (2 variables: Abierto + Cerrado)</option>
-                    </select>
+                    <label>Variable STATUS (entero: 0=tránsito, 1=abierto, 2=cerrado, 3=error):</label>
+                    <select id="cb-status-var" class="form-control" onchange="onCBVarChange()"><option value="">-- seleccionar --</option></select>
                 </div>
-
-                <!-- Double mode -->
-                <div id="cb-double-vars">
-                    <div class="form-group">
-                        <label>Variable Status:</label>
-                        <select id="cb-status-var-double" class="form-control"><option value="">-- seleccionar --</option></select>
-                    </div>
+                <div class="form-group">
+                    <label>Variable Estado ABIERTO (binario 0/1):</label>
+                    <select id="cb-open-var" class="form-control" onchange="onCBVarChange()"><option value="">-- seleccionar --</option></select>
                 </div>
-
-                <!-- Simple mode -->
-                <div id="cb-simple-vars" style="display:none;">
-                    <div class="form-group">
-                        <label>Variable Estado Abierto (0/1):</label>
-                        <select id="cb-status-var-open" class="form-control"><option value="">-- seleccionar --</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Variable Estado Cerrado (0/1):</label>
-                        <select id="cb-status-var-close" class="form-control"><option value="">-- seleccionar --</option></select>
-                    </div>
+                <div class="form-group">
+                    <label>Variable Estado CERRADO (binario 0/1):</label>
+                    <select id="cb-close-var" class="form-control" onchange="onCBVarChange()"><option value="">-- seleccionar --</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Modo de animación (automático):</label>
+                    <div id="cb-mode-indicator" style="padding:6px 10px;background:#1C2235;border-radius:4px;color:#94a3b8;font-size:12px;">— sin configurar —</div>
                 </div>
 
                 <!-- Command -->
@@ -699,42 +689,23 @@
             <div id="disc-config-section" style="display:none;">
                 <div class="modal-section-title" style="margin-top:14px;">🔌 Configuración Seccionador</div>
 
-                <!-- Status mode (disc has 3 options) -->
+                <!-- Status variables (auto-mode) -->
+                <div class="modal-section-title" style="margin-top:14px;">📊 Variables de Estado</div>
                 <div class="form-group">
-                    <label>Modo de estado:</label>
-                    <select id="disc-status-mode" class="form-control" onchange="onDiscStatusModeChange()">
-                        <option value="double">Doble (1 variable: 0=tránsito, 1=abierto, 2=cerrado, 3=error)</option>
-                        <option value="simple">Simple (2 variables: Abierto + Cerrado)</option>
-                        <option value="simplesimple">Simple-Simple (1 variable: 0=abierto, 1=cerrado)</option>
-                    </select>
+                    <label>Variable STATUS (entero: 0=tránsito, 1=abierto, 2=cerrado, 3=error):</label>
+                    <select id="disc-status-var" class="form-control" onchange="onDiscVarChange()"><option value="">-- seleccionar --</option></select>
                 </div>
-
-                <!-- Double mode -->
-                <div id="disc-double-vars">
-                    <div class="form-group">
-                        <label>Variable Status:</label>
-                        <select id="disc-status-var-double" class="form-control"><option value="">-- seleccionar --</option></select>
-                    </div>
+                <div class="form-group">
+                    <label>Variable Estado ABIERTO (binario 0/1):</label>
+                    <select id="disc-open-var" class="form-control" onchange="onDiscVarChange()"><option value="">-- seleccionar --</option></select>
                 </div>
-
-                <!-- Simple mode -->
-                <div id="disc-simple-vars" style="display:none;">
-                    <div class="form-group">
-                        <label>Variable Estado Abierto (0/1):</label>
-                        <select id="disc-status-var-open" class="form-control"><option value="">-- seleccionar --</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Variable Estado Cerrado (0/1):</label>
-                        <select id="disc-status-var-close" class="form-control"><option value="">-- seleccionar --</option></select>
-                    </div>
+                <div class="form-group">
+                    <label>Variable Estado CERRADO (binario 0/1):</label>
+                    <select id="disc-close-var" class="form-control" onchange="onDiscVarChange()"><option value="">-- seleccionar --</option></select>
                 </div>
-
-                <!-- Simple-Simple mode -->
-                <div id="disc-simplesimple-vars" style="display:none;">
-                    <div class="form-group">
-                        <label>Variable Status (0=abierto, 1=cerrado):</label>
-                        <select id="disc-status-var-simplesimple" class="form-control"><option value="">-- seleccionar --</option></select>
-                    </div>
+                <div class="form-group">
+                    <label>Modo de animación (automático):</label>
+                    <div id="disc-mode-indicator" style="padding:6px 10px;background:#1C2235;border-radius:4px;color:#94a3b8;font-size:12px;">— sin configurar —</div>
                 </div>
 
                 <!-- Command -->
